@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.njit.zang.mapper.LikeDao">
+  <resultMap id="BaseResultMap" type="com.njit.zang.model.Like">
+    <result column="uid" jdbcType="VARCHAR" property="uid" />
+    <result column="feed_id" jdbcType="VARCHAR" property="feedId" />
+  </resultMap>
+  <sql id="Example_Where_Clause">
+    <where>
+      <foreach collection="oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause">
+    <where>
+      <foreach collection="example.oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List">
+    `uid`, feed_id
+  </sql>
+  <select id="selectByExample" parameterType="com.njit.zang.model.LikeExample" resultMap="BaseResultMap">
+    select
+    <if test="distinct">
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from liked
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null">
+      order by ${orderByClause}
+    </if>
+    <if test="limit != null">
+      <if test="offset != null">
+        limit ${offset}, ${limit}
+      </if>
+      <if test="offset == null">
+        limit ${limit}
+      </if>
+    </if>
+  </select>
+  <select id="selectByFeedAndUser" parameterType="java.lang.String" resultType="java.lang.String">
+    SELECT feed_id
+    FROM liked
+    WHERE feed_id = #{feedId,jdbcType=VARCHAR} AND uid = #{uid,jdbcType=VARCHAR}
+  </select>
+  <select id="selectByUserId" parameterType="java.lang.String" resultType="java.lang.String">
+    SELECT feed_id
+    FROM liked
+    WHERE uid = #{uid,jdbcType=VARCHAR}
+  </select>
+  <delete id="deleteByExample" parameterType="com.njit.zang.model.LikeExample">
+    delete from liked
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <delete id="deleteByFeedAndUser" parameterType="java.lang.String">
+    DELETE from liked WHERE feed_id = #{feedId,jdbcType=VARCHAR} AND uid = #{uid,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="com.njit.zang.model.Like">
+    insert into liked (`uid`, feed_id)
+    values (#{uid,jdbcType=VARCHAR}, #{feedId,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertIgnore" parameterType="java.lang.String" >
+    insert into liked (feed_id,uid)
+    select #{feedId,jdbcType=VARCHAR},#{uid,jdbcType=VARCHAR}
+    from dual
+    where NOT EXISTS
+    (SELECT * FROM liked
+    WHERE uid=#{uid,jdbcType=VARCHAR} and feed_id=#{feedId,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.njit.zang.model.Like">
+    insert into liked
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="uid != null">
+        `uid`,
+      </if>
+      <if test="feedId != null">
+        feed_id,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="uid != null">
+        #{uid,jdbcType=VARCHAR},
+      </if>
+      <if test="feedId != null">
+        #{feedId,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.njit.zang.model.LikeExample" resultType="java.lang.Long">
+    select count(*) from liked
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <select id="countByFeedId" parameterType="java.lang.String" resultType="java.lang.Integer">
+    SELECT COUNT(*) from liked WHERE feed_id = #{feedId,jdbcType=VARCHAR}
+  </select>
+  <update id="updateByExampleSelective" parameterType="map">
+    update liked
+    <set>
+      <if test="record.uid != null">
+        `uid` = #{record.uid,jdbcType=VARCHAR},
+      </if>
+      <if test="record.feedId != null">
+        feed_id = #{record.feedId,jdbcType=VARCHAR},
+      </if>
+    </set>
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map">
+    update liked
+    set `uid` = #{record.uid,jdbcType=VARCHAR},
+      feed_id = #{record.feedId,jdbcType=VARCHAR}
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+</mapper>

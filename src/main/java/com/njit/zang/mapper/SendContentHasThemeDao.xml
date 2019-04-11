@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.njit.zang.mapper.SendContentHasThemeDao">
+  <resultMap id="BaseResultMap" type="com.njit.zang.model.SendContentHasTheme">
+    <result column="send_content_feed_id" jdbcType="VARCHAR" property="sendContentFeedId" />
+    <result column="theme_name" jdbcType="VARCHAR" property="themeName" />
+  </resultMap>
+  <sql id="Example_Where_Clause">
+    <where>
+      <foreach collection="oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause">
+    <where>
+      <foreach collection="example.oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List">
+    send_content_feed_id, theme_name
+  </sql>
+  <select id="selectByExample" parameterType="com.njit.zang.model.SendContentHasThemeExample" resultMap="BaseResultMap">
+    select
+    <if test="distinct">
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from send_content_has_theme
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null">
+      order by ${orderByClause}
+    </if>
+    <if test="limit != null">
+      <if test="offset != null">
+        limit ${offset}, ${limit}
+      </if>
+      <if test="offset == null">
+        limit ${limit}
+      </if>
+    </if>
+  </select>
+  <select id="selectByFeedId" parameterType="java.lang.String" resultType="java.lang.String">
+    SELECT
+      theme_name
+    FROM
+      send_content_has_theme
+    WHERE
+      send_content_feed_id = #{feedId,jdbcType=VARCHAR}
+  </select>
+  <select id="selectByTheme" parameterType="java.lang.String" resultType="java.lang.String">
+    SELECT
+      send_content_feed_id
+    FROM
+      send_content_has_theme
+    WHERE
+      theme_name = #{themeName,jdbcType=VARCHAR}
+  </select>
+  <delete id="deleteByExample" parameterType="com.njit.zang.model.SendContentHasThemeExample">
+    delete from send_content_has_theme
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.njit.zang.model.SendContentHasTheme">
+    insert into send_content_has_theme (send_content_feed_id, theme_name)
+    values (#{sendContentFeedId,jdbcType=VARCHAR}, #{themeName,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.njit.zang.model.SendContentHasTheme">
+    insert into send_content_has_theme
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="sendContentFeedId != null">
+        send_content_feed_id,
+      </if>
+      <if test="themeName != null">
+        theme_name,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="sendContentFeedId != null">
+        #{sendContentFeedId,jdbcType=VARCHAR},
+      </if>
+      <if test="themeName != null">
+        #{themeName,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.njit.zang.model.SendContentHasThemeExample" resultType="java.lang.Long">
+    select count(*) from send_content_has_theme
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map">
+    update send_content_has_theme
+    <set>
+      <if test="record.sendContentFeedId != null">
+        send_content_feed_id = #{record.sendContentFeedId,jdbcType=VARCHAR},
+      </if>
+      <if test="record.themeName != null">
+        theme_name = #{record.themeName,jdbcType=VARCHAR},
+      </if>
+    </set>
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map">
+    update send_content_has_theme
+    set send_content_feed_id = #{record.sendContentFeedId,jdbcType=VARCHAR},
+      theme_name = #{record.themeName,jdbcType=VARCHAR}
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+</mapper>

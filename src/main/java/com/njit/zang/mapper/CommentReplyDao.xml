@@ -1,0 +1,286 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.njit.zang.mapper.CommentReplyDao">
+  <resultMap id="BaseResultMap" type="com.njit.zang.model.CommentReply">
+    <id column="comment_reply_id" jdbcType="VARCHAR" property="commentReplyId" />
+    <result column="from_user_id" jdbcType="VARCHAR" property="fromUserId" />
+    <result column="to_user_id" jdbcType="VARCHAR" property="toUserId" />
+    <result column="rep_con" jdbcType="VARCHAR" property="repCon" />
+    <result column="rep_time" jdbcType="BIGINT" property="repTime" />
+    <result column="comment_id" jdbcType="INTEGER" property="commentId" />
+    <result column="rep_type" jdbcType="INTEGER" property="repType" />
+  </resultMap>
+  <resultMap id="CommentReplyPro" type="com.njit.zang.model.CommentReplyPro">
+    <id column="comment_reply_id" jdbcType="VARCHAR" property="commentReplyId" />
+    <result column="from_user_id" jdbcType="VARCHAR" property="fromUserId" />
+    <result column="nickname" jdbcType="VARCHAR" property="fromUserNickname" />
+    <result column="avatar" jdbcType="VARCHAR" property="avatar" />
+    <result column="to_user_id" jdbcType="VARCHAR" property="toUserId" />
+    <result column="rep_con" jdbcType="VARCHAR" property="repCon" />
+    <result column="rep_time" jdbcType="BIGINT" property="repTime" />
+    <result column="comment_id" jdbcType="INTEGER" property="commentId" />
+    <result column="rep_type" jdbcType="INTEGER" property="repType" />
+  </resultMap>
+  <sql id="Example_Where_Clause">
+    <where>
+      <foreach collection="oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause">
+    <where>
+      <foreach collection="example.oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List">
+    comment_reply_id, from_user_id, to_user_id, rep_con, rep_time, comment_id, rep_type
+  </sql>
+  <select id="selectByExample" parameterType="com.njit.zang.model.CommentReplyExample" resultMap="BaseResultMap">
+    select
+    <if test="distinct">
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from comment_reply
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null">
+      order by ${orderByClause}
+    </if>
+    <if test="limit != null">
+      <if test="offset != null">
+        limit ${offset}, ${limit}
+      </if>
+      <if test="offset == null">
+        limit ${limit}
+      </if>
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from comment_reply
+    where comment_reply_id = #{commentReplyId,jdbcType=VARCHAR}
+  </select>
+  <select id="selectProByCommentId" parameterType="java.lang.Integer" resultMap="CommentReplyPro">
+    SELECT
+        comment_reply.comment_reply_id,
+        comment_reply.from_user_id,
+        comment_reply.to_user_id,
+        comment_reply.rep_con,
+        comment_reply.rep_time,
+        comment_reply.comment_id,
+        comment_reply.rep_type,
+        `user`.nickname,
+        `user`.avatar
+    FROM
+        comment_reply
+    INNER JOIN `user` ON `user`.uid = comment_reply.from_user_id
+     WHERE
+        comment_reply.comment_id = #{commentId,jdbcType=INTEGER}
+     ORDER BY
+        comment_reply.rep_time ASC
+
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+    delete from comment_reply
+    where comment_reply_id = #{commentReplyId,jdbcType=VARCHAR}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.njit.zang.model.CommentReplyExample">
+    delete from comment_reply
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" keyColumn="comment_reply_id" keyProperty="commentReplyId" parameterType="com.njit.zang.model.CommentReply" useGeneratedKeys="true">
+    insert into comment_reply (from_user_id, to_user_id, rep_con, comment_reply_id,
+      rep_time, comment_id, rep_type
+      )
+    values (#{fromUserId,jdbcType=VARCHAR}, #{toUserId,jdbcType=VARCHAR}, #{repCon,jdbcType=VARCHAR}, #{commentReplyId,jdbcType=VARCHAR},
+      #{repTime,jdbcType=BIGINT}, #{commentId,jdbcType=INTEGER}, #{repType,jdbcType=INTEGER}
+      )
+  </insert>
+  <insert id="insertSelective" keyColumn="comment_reply_id" keyProperty="commentReplyId" parameterType="com.njit.zang.model.CommentReply" useGeneratedKeys="true">
+    insert into comment_reply
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="fromUserId != null">
+        from_user_id,
+      </if>
+      <if test="toUserId != null">
+        to_user_id,
+      </if>
+      <if test="repCon != null">
+        rep_con,
+      </if>
+      <if test="repTime != null">
+        rep_time,
+      </if>
+      <if test="commentId != null">
+        comment_id,
+      </if>
+      <if test="repType != null">
+        rep_type,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="fromUserId != null">
+        #{fromUserId,jdbcType=VARCHAR},
+      </if>
+      <if test="toUserId != null">
+        #{toUserId,jdbcType=VARCHAR},
+      </if>
+      <if test="repCon != null">
+        #{repCon,jdbcType=VARCHAR},
+      </if>
+      <if test="repTime != null">
+        #{repTime,jdbcType=BIGINT},
+      </if>
+      <if test="commentId != null">
+        #{commentId,jdbcType=INTEGER},
+      </if>
+      <if test="repType != null">
+        #{repType,jdbcType=INTEGER},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.njit.zang.model.CommentReplyExample" resultType="java.lang.Long">
+    select count(*) from comment_reply
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <select id="countByFeedId" parameterType="java.lang.String" resultType="java.lang.Integer">
+    SELECT
+count(*)
+FROM
+`comment`
+INNER JOIN comment_reply ON comment_reply.comment_id = `comment`.comment_id
+WHERE
+`comment`.send_content_feed_id = #{feedId,jdbcType=VARCHAR}
+
+  </select>
+  <update id="updateByExampleSelective" parameterType="map">
+    update comment_reply
+    <set>
+      <if test="record.commentReplyId != null">
+        comment_reply_id = #{record.commentReplyId,jdbcType=INTEGER},
+      </if>
+      <if test="record.fromUserId != null">
+        from_user_id = #{record.fromUserId,jdbcType=VARCHAR},
+      </if>
+      <if test="record.toUserId != null">
+        to_user_id = #{record.toUserId,jdbcType=VARCHAR},
+      </if>
+      <if test="record.repCon != null">
+        rep_con = #{record.repCon,jdbcType=VARCHAR},
+      </if>
+      <if test="record.repTime != null">
+        rep_time = #{record.repTime,jdbcType=BIGINT},
+      </if>
+      <if test="record.commentId != null">
+        comment_id = #{record.commentId,jdbcType=INTEGER},
+      </if>
+      <if test="record.repType != null">
+        rep_type = #{record.repType,jdbcType=INTEGER},
+      </if>
+    </set>
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map">
+    update comment_reply
+    set comment_reply_id = #{record.commentReplyId,jdbcType=INTEGER},
+      from_user_id = #{record.fromUserId,jdbcType=VARCHAR},
+      to_user_id = #{record.toUserId,jdbcType=VARCHAR},
+      rep_con = #{record.repCon,jdbcType=VARCHAR},
+      rep_time = #{record.repTime,jdbcType=BIGINT},
+      comment_id = #{record.commentId,jdbcType=INTEGER},
+      rep_type = #{record.repType,jdbcType=INTEGER}
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.njit.zang.model.CommentReply">
+    update comment_reply
+    <set>
+      <if test="fromUserId != null">
+        from_user_id = #{fromUserId,jdbcType=VARCHAR},
+      </if>
+      <if test="toUserId != null">
+        to_user_id = #{toUserId,jdbcType=VARCHAR},
+      </if>
+      <if test="repCon != null">
+        rep_con = #{repCon,jdbcType=VARCHAR},
+      </if>
+      <if test="repTime != null">
+        rep_time = #{repTime,jdbcType=BIGINT},
+      </if>
+      <if test="commentId != null">
+        comment_id = #{commentId,jdbcType=INTEGER},
+      </if>
+      <if test="repType != null">
+        rep_type = #{repType,jdbcType=INTEGER},
+      </if>
+    </set>
+    where comment_reply_id = #{commentReplyId,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.njit.zang.model.CommentReply">
+    update comment_reply
+    set from_user_id = #{fromUserId,jdbcType=VARCHAR},
+      to_user_id = #{toUserId,jdbcType=VARCHAR},
+      rep_con = #{repCon,jdbcType=VARCHAR},
+      rep_time = #{repTime,jdbcType=BIGINT},
+      comment_id = #{commentId,jdbcType=INTEGER},
+      rep_type = #{repType,jdbcType=INTEGER}
+    where comment_reply_id = #{commentReplyId,jdbcType=VARCHAR}
+  </update>
+</mapper>

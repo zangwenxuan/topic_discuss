@@ -1,0 +1,9 @@
+spring:
+  profiles: dev
+  datasource:
+    #url: jdbc:mysql://10.200.33.201:3306/freshman?useUnicode=true&characterEncoding=utf8&useSSL=false
+    #username: eccom
+    #password: ENC(1i1VCOZ2nfAVmaGzYHiukg==)
+    url: jdbc:mysql://127.0.0.1:3306/topic_discuss?useUnicode=true&characterEncoding=utf8&useSSL=false
+    username: root
+    password: 123456

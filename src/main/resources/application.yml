@@ -1,0 +1,47 @@
+
+info:
+  app:
+    name: @project.artifactId@
+    description: @project.description@
+    version: @project.version@
+
+spring:
+  servlet:
+    multipart:
+      max-request-size: -1
+      max-file-size: -1
+  devtools:
+    restart:
+      enabled: true  #���ÿ����Ȳ���
+  freemarker:
+    cache: false    #ҳ�治���ػ��棬�޸ļ�ʱ��Ч
+  profiles:
+    active: dev
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    type: com.zaxxer.hikari.HikariDataSource
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 15
+      connection-test-query: select 1
+
+
+jasypt:
+  encryptor:
+    password: ${app-secret:ecudowid}
+
+
+mybatis:
+  type-aliases-package: com.njit.zang.model
+  mapper-locations: classpath:com/njit/zang/mapper/*.xml
+  configuration:
+    database-id: mysql
+    map-underscore-to-camel-case: true
+    default-statement-timeout: 30
+   # log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+pagehelper:
+  helperDialect: mysql
+  reasonable: true
+  pageSizeZero: true
+debug: true

@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.njit.zang.mapper.CommentDao">
+  <resultMap id="BaseResultMap" type="com.njit.zang.model.Comment">
+    <id column="comment_id" jdbcType="INTEGER" property="commentId" />
+    <result column="user_uid" jdbcType="VARCHAR" property="userUid" />
+    <result column="com_con" jdbcType="VARCHAR" property="comCon" />
+    <result column="send_content_feed_id" jdbcType="VARCHAR" property="sendContentFeedId" />
+    <result column="time" jdbcType="BIGINT" property="time" />
+  </resultMap>
+  <resultMap id="CommentUser" type="com.njit.zang.model.CommentUser">
+    <id column="comment_id" jdbcType="INTEGER" property="commentId" />
+    <result column="user_uid" jdbcType="VARCHAR" property="userUid" />
+    <result column="com_con" jdbcType="VARCHAR" property="comCon" />
+    <result column="nickname" jdbcType="VARCHAR" property="nickname" />
+    <result column="avatar" jdbcType="VARCHAR" property="avatar" />
+    <result column="time" jdbcType="BIGINT" property="time" />
+  </resultMap>
+  <sql id="Example_Where_Clause">
+    <where>
+      <foreach collection="oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause">
+    <where>
+      <foreach collection="example.oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List">
+    comment_id, user_uid, send_content_feed_id, `time`, com_con
+  </sql>
+  <select id="selectByExample" parameterType="com.njit.zang.model.CommentExample" resultMap="BaseResultMap">
+    select
+    <if test="distinct">
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from comment
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null">
+      order by ${orderByClause}
+    </if>
+    <if test="limit != null">
+      <if test="offset != null">
+        limit ${offset}, ${limit}
+      </if>
+      <if test="offset == null">
+        limit ${limit}
+      </if>
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from comment
+    where comment_id = #{commentId,jdbcType=INTEGER}
+  </select>
+  <select id="selectByFeedId" parameterType="java.lang.String" resultMap="CommentUser">
+    SELECT
+        `user`.nickname,
+        `user`.avatar,
+        `comment`.comment_id,
+        `comment`.user_uid,
+        `comment`.time,
+        `comment`.com_con
+    FROM
+        `comment`
+    INNER JOIN `user` ON `comment`.user_uid = `user`.uid
+    WHERE
+        `comment`.send_content_feed_id = #{feedId,jdbcType=VARCHAR}
+    ORDER BY
+    `comment`.time DESC
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from comment
+    where comment_id = #{commentId,jdbcType=INTEGER}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.njit.zang.model.CommentExample">
+    delete from comment
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" keyColumn="comment_id" keyProperty="commentId" parameterType="com.njit.zang.model.Comment" useGeneratedKeys="true">
+    insert into comment (user_uid, send_content_feed_id, `time`, com_con
+      )
+    values (#{userUid,jdbcType=VARCHAR}, #{sendContentFeedId,jdbcType=VARCHAR}, #{time,jdbcType=BIGINT},#{comCon,jdbcType=VARCHAR}
+      )
+  </insert>
+  <insert id="insertSelective" keyColumn="comment_id" keyProperty="commentId" parameterType="com.njit.zang.model.Comment" useGeneratedKeys="true">
+    insert into comment
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="userUid != null">
+        user_uid,
+      </if>
+      <if test="sendContentFeedId != null">
+        send_content_feed_id,
+      </if>
+      <if test="time != null">
+        `time`,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="userUid != null">
+        #{userUid,jdbcType=VARCHAR},
+      </if>
+      <if test="sendContentFeedId != null">
+        #{sendContentFeedId,jdbcType=INTEGER},
+      </if>
+      <if test="time != null">
+        #{time,jdbcType=BIGINT},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.njit.zang.model.CommentExample" resultType="java.lang.Long">
+    select count(*) from comment
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <select id="countByFeedId" parameterType="java.lang.String" resultType="java.lang.Integer">
+    SELECT COUNT(*) from comment WHERE send_content_feed_id = #{feedId,jdbcType=VARCHAR}
+  </select>
+  <update id="updateByExampleSelective" parameterType="map">
+    update comment
+    <set>
+      <if test="record.commentId != null">
+        comment_id = #{record.commentId,jdbcType=INTEGER},
+      </if>
+      <if test="record.userUid != null">
+        user_uid = #{record.userUid,jdbcType=VARCHAR},
+      </if>
+      <if test="record.sendContentFeedId != null">
+        send_content_feed_id = #{record.sendContentFeedId,jdbcType=VARCHAR},
+      </if>
+      <if test="record.time != null">
+        `time` = #{record.time,jdbcType=BIGINT},
+      </if>
+    </set>
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map">
+    update comment
+    set comment_id = #{record.commentId,jdbcType=INTEGER},
+      user_uid = #{record.userUid,jdbcType=VARCHAR},
+      send_content_feed_id = #{record.sendContentFeedId,jdbcType=VARCHAR},
+      `time` = #{record.time,jdbcType=BIGINT}
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.njit.zang.model.Comment">
+    update comment
+    <set>
+      <if test="userUid != null">
+        user_uid = #{userUid,jdbcType=VARCHAR},
+      </if>
+      <if test="comCon != null">
+        com_con = #{comCon,jdbcType=VARCHAR},
+      </if>
+      <if test="sendContentFeedId != null">
+        send_content_feed_id = #{sendContentFeedId,jdbcType=VARCHAR},
+      </if>
+      <if test="time != null">
+        `time` = #{time,jdbcType=BIGINT},
+      </if>
+    </set>
+    where comment_id = #{commentId,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.njit.zang.model.Comment">
+    update comment
+    set user_uid = #{userUid,jdbcType=VARCHAR},
+      send_content_feed_id = #{sendContentFeedId,jdbcType=VARCHAR},
+      `time` = #{time,jdbcType=BIGINT}
+      com_con = #{comCon,jdbcType=VARCHAR}
+    where comment_id = #{commentId,jdbcType=INTEGER}
+  </update>
+</mapper>
