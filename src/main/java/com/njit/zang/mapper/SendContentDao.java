@@ -5,6 +5,7 @@ import com.njit.zang.model.SendContent;
 import com.njit.zang.model.SendContentExample;
 import java.util.List;
 
+import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
@@ -38,6 +39,9 @@ public interface SendContentDao {
             "WHERE\n" +
             "send_content.author_id = #{uid}\n")
     List<String> selectFeedListByUid(@Param("uid") String uid);
+
+    @Delete("delete from send_content where feed_id = #{feedId}")
+    int deleteFeed(String feedId);
 
     List<SendContent> selectByExample(SendContentExample example);
 

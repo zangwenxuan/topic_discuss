@@ -6,15 +6,27 @@ info:
     version: @project.version@
 
 spring:
+  mail:
+    host: smtp.163.com
+    username: 17712850774
+    password: 258369qwe
+    properties:
+      smtp:
+        auth: true
+        starttls:
+          enable: true
+          required: true
+      ssl:
+        enable: true
   servlet:
     multipart:
       max-request-size: -1
       max-file-size: -1
   devtools:
     restart:
-      enabled: true  #���ÿ����Ȳ���
+      enabled: true
   freemarker:
-    cache: false    #ҳ�治���ػ��棬�޸ļ�ʱ��Ч
+    cache: false
   profiles:
     active: dev
   datasource:

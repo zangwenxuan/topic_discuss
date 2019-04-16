@@ -3,6 +3,7 @@ package com.njit.zang.controller;
 import com.njit.zang.dto.*;
 import com.njit.zang.model.*;
 import com.njit.zang.service.*;
+import org.apache.ibatis.annotations.Delete;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -175,6 +176,12 @@ public class ContentController {
         feedService.insertContentTheme(feed.getThemeList(),feedId);
         //添加通知
         insertNoticeToFollowers(sendContent);
+        return Result.builder().code(Result.SUCCESS_CODE).build();
+    }
+
+    @DeleteMapping("deleteFeed")
+    public Result deleteFeed(@RequestBody Map m,HttpSession session ){
+        sendContentService.deleteFeed((String)m.get("feedId"));
         return Result.builder().code(Result.SUCCESS_CODE).build();
     }
 

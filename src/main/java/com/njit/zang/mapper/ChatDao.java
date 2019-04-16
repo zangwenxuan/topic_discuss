@@ -61,6 +61,22 @@ public interface ChatDao {
             "LIMIT 1\n")
     Chat selectHistoryChat(@Param("fromUserId") String fromUserId,@Param("toUserId")String toUserId);
 
+    @Select("SELECT\n" +
+            "chat.from_user_id,\n" +
+            "chat.to_user_id,\n" +
+            "chat.message,\n" +
+            "chat.time,\n" +
+            "chat.`read`\n" +
+            "FROM\n" +
+            "chat\n" +
+            "WHERE\n" +
+            "chat.to_user_id = #{toUserId} AND\n" +
+            "chat.from_user_id = #{fromUserId}\n" +
+            "ORDER BY\n" +
+            "chat.time DESC\n" +
+            "LIMIT 1\n")
+    Chat selectChat(@Param("fromUserId") String fromUserId,@Param("toUserId")String toUserId);
+
     @Select("UPDATE chat SET `read` = -1 " +
             "WHERE " +
             "from_user_id = #{fromUserId} " +

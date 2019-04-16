@@ -112,7 +112,7 @@ public class WebSocketServer {
                     return 0;
                 }
             } catch (IOException e) {
-                continue;
+                return -1;
             }
         }
         return -1;

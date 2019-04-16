@@ -1,6 +1,8 @@
 package com.njit.zang.model;
 
 import lombok.Data;
+import lombok.experimental.Accessors;
+import org.checkerframework.checker.units.qual.A;
 
 import java.io.Serializable;
 
@@ -9,6 +11,7 @@ import java.io.Serializable;
  * @author 
  */
 @Data
+@Accessors(chain = true)
 public class User implements Serializable {
     private String uid;
 

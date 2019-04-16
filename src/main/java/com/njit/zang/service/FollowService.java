@@ -2,8 +2,6 @@ package com.njit.zang.service;
 
 import com.njit.zang.dto.Result;
 import com.njit.zang.mapper.FollowDao;
-import com.njit.zang.mapper.FollowersDao;
-import com.njit.zang.mapper.FollowingsDao;
 import com.njit.zang.model.Follow;
 import com.njit.zang.model.User;
 import org.springframework.beans.factory.annotation.Autowired;

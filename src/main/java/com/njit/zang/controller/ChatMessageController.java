@@ -46,13 +46,28 @@ public class ChatMessageController {
         return Result.builder().code(Result.SUCCESS_CODE).build();
     }
 
+    @DeleteMapping("clearChatNotes")
+    public Result clearChatNotes(HttpSession session){
+        String uid = (String) session.getAttribute("uid");
+        chatService.deleteAllChatNotes(uid);
+        return Result.builder().code(Result.SUCCESS_CODE).build();
+    }
+
+    @DeleteMapping("/deleteChatNote")
+    public Result deleteChatNote(@RequestBody Map m,HttpSession session){
+        String fromUserId = (String) session.getAttribute("uid");
+        String toUserId = (String) m.get("uid");
+        chatService.deleteChatNotes(fromUserId,toUserId);
+        return Result.builder().code(Result.SUCCESS_CODE).build();
+    }
+
     @PostMapping("/sendMsg")
     public Result sendMessage(@RequestBody Chat chat,HttpSession session){
         String uid = (String) session.getAttribute("uid");
         User user = userService.selectByPrimaryKey(uid);
         log.info(user.toString());
         chat.setFromUserId(uid);
-        chat.setTime(new Date().getTime());
+        chat.setTime(new Date().getTime()).setRead(-1);
 
         ChatDto chatDto = new ChatDto();
         chatDto.setAvatar(user.getAvatar())
@@ -64,12 +79,15 @@ public class ChatMessageController {
         try {
             if(WebSocketServer.sendInfo(JSONObject.toJSONString(chatDto), chat.getToUserId()+uid) == -1){
                 WebSocketServer.sendInfo(JSONObject.toJSONString(chatDto),chat.getToUserId());
+                chat.setRead(0);
             }
         }catch(Exception e){
             e.printStackTrace();
         }
 
         chatService.insert(chat);
+        chatService.insertChatNotes(chat.getFromUserId(),chat.getToUserId());
+        chatService.insertChatNotes(chat.getToUserId(),chat.getFromUserId());
 
         Map m =  getALlMsg(chat.getToUserId(),uid);
         return Result.builder().code(Result.SUCCESS_CODE).res(m).build();
@@ -86,7 +104,7 @@ public class ChatMessageController {
     @GetMapping("/getChatNotice")
     public Result getMsgNotice(HttpSession session){
         String uid = (String) session.getAttribute("uid");
-        List<String> userList = chatService.selectUserList(uid);
+        List<String> userList = chatService.selectNoteList(uid);
         List<ChatDto> chatNotice = new ArrayList<>();
         userList.stream().forEach(u->{
             chatNotice.add(getChatNotice(u,uid));
@@ -117,9 +135,21 @@ public class ChatMessageController {
                     .setTime(chatList.get(0).getTime())
                     .setCount(chatList.size());
         }else {
+            Chat c = chatService.selectChat(toUserId,fromUserId);
             Chat chat = chatService.selectHistoryChat(fromUserId, toUserId);
-            chatDto.setTime(chat.getTime())
-                    .setContent(chat.getMessage());
+            if(c != null && chat == null){
+                chatDto.setTime(c.getTime())
+                        .setContent(c.getMessage());
+            }else if(c == null && chat != null){
+                chatDto.setTime(chat.getTime())
+                        .setContent(chat.getMessage());
+            }else if(c!=null&&chat!=null&&c.getTime() - chat.getTime() > 0){
+                chatDto.setTime(c.getTime())
+                        .setContent(c.getMessage());
+            }else {
+                chatDto.setTime(chat.getTime())
+                        .setContent(chat.getMessage());
+            }
         }
         return chatDto;
 

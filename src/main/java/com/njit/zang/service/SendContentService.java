@@ -30,6 +30,10 @@ public class SendContentService {
         return sendContentDao.countByUid(uid);
     }
 
+    public void deleteFeed(String feedId){
+        sendContentDao.deleteFeed(feedId);
+    }
+
     public String selectUidByFeedId(String feedId){
         return sendContentDao.selectUidByFeedId(feedId);
     }

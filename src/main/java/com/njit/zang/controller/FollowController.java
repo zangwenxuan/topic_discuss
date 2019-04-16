@@ -32,7 +32,27 @@ public class FollowController {
     @Autowired
     private NoticeService noticeService;
 
-    @PostMapping("/newFollow")
+    @GetMapping("getFollow")
+    public Result getFollow(HttpSession session){
+        String uid = (String)session.getAttribute("uid");
+        List followerList = followService.selectByMaster(uid);
+        List masterList = followService.selectByFollower(uid);
+        Map m = new HashMap();
+        if(followerList != null){
+            m.put("followerNum",followerList.size());
+        }else {
+            m.put("followerNum",0);
+        }
+        if(masterList != null){
+            m.put("masterNum", masterList.size());
+        }else {
+            m.put("masterNum",0);
+        }
+        return Result.builder().code(Result.SUCCESS_CODE).res(m).build();
+
+    }
+
+    @PostMapping("newFollow")
     public Result insert(@RequestBody Map map, HttpSession session){
         String uid = (String)session.getAttribute("uid");
         followService.insert(uid,(String)map.get("master"));
@@ -47,7 +67,7 @@ public class FollowController {
         return Result.builder().code(Result.SUCCESS_CODE).res(true).build();
     }
 
-    @DeleteMapping("/cancelFollow")
+    @DeleteMapping("cancelFollow")
     public Result cancelFollow(@RequestBody Map map, HttpSession session){
         String uid = (String)session.getAttribute("uid");
         followService.delete(uid,(String)map.get("master"));
