@@ -1,6 +1,8 @@
 package com.njit.zang.controller;
 
-import ch.qos.logback.core.net.SyslogOutputStream;
+import com.google.common.collect.Ordering;
+import com.njit.zang.annotation.UserLoginToken;
+import com.njit.zang.token.TokenService;
 import com.njit.zang.utils.MD5Utils;
 import com.njit.zang.utils.Mail;
 import com.njit.zang.dto.*;
@@ -9,9 +11,11 @@ import com.njit.zang.model.UserSendContent;
 import com.njit.zang.service.*;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.annotations.Param;
-import org.apache.ibatis.reflection.SystemMetaObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
@@ -19,7 +23,9 @@ import java.util.*;
 
 /**
  * Created by Administrator on 2019/3/19.
+ * @author zangwenxuan
  */
+@Slf4j
 @RestController
 @RequestMapping("/user")
 public class UserController {
@@ -44,6 +50,9 @@ public class UserController {
     @Autowired
     public Mail mailSend;
 
+    @Autowired
+    public TokenService tokenService;
+
     @ApiOperation(value="获取用户详细信息", notes="根据id来获取用户详细信息")
     @ApiImplicitParam(name = "id", value = "用户ID", required = true, dataType = "String")
     @GetMapping("/test")
@@ -60,31 +69,29 @@ public class UserController {
     @PostMapping("register")
     public Result register(@RequestBody RegisterUser registerUser,HttpSession session){
         String captcha = (String)session.getAttribute("captcha");
-        System.out.println(captcha+"*****"+registerUser.getCaptcha());
-        if(captcha.equals(registerUser.getCaptcha())){
+        if(captcha!=null && captcha.equals(registerUser.getCaptcha())){
             User user = userService.insert(registerUser.getUser());
-            return Result.builder().code(Result.SUCCESS_CODE).res(user).build();
+            String token = tokenService.getToken(user);
+            return Result.builder().code(Result.SUCCESS_CODE).res(token).build();
         }
         return Result.builder().code(Result.FAILED_CODE).build();
     }
 
     @PostMapping("check")
     public Result checkUser(@RequestBody User user, HttpSession session){
-        System.out.println(user);
-
         User u = userService.selectByNickname(user.getUid());
         String password = MD5Utils.Encode(user.getPassword());
         if(u!=null&&u.getPassword().equals(password)){
             session.setAttribute("uid",u.getUid());
-            return Result.builder().code(Result.SUCCESS_CODE).res(u).build();
+            return Result.builder().code(Result.SUCCESS_CODE).res(tokenService.getToken(u)).build();
         }
         u = userService.selectByEmail(user.getUid());
         if(u!=null&&u.getPassword().equals(password)){
             session.setAttribute("uid",u.getUid());
-            return Result.builder().code(Result.SUCCESS_CODE).res(u).build();
+            return Result.builder().code(Result.SUCCESS_CODE).res(tokenService.getToken(u)).build();
         }
 
-        return Result.builder().code(Result.FAILED_CODE).build();
+        return Result.builder().code(Result.SUCCESS_CODE).res(null).build();
     }
 
     @GetMapping("checkName")
@@ -97,10 +104,18 @@ public class UserController {
         return Result.builder().code(Result.SUCCESS_CODE).res(!userService.checkEmail(email)).build();
     }
 
+    @UserLoginToken
+    @GetMapping("getCurrentUser")
+    public Result getCurrentUser(HttpSession session){
+        User u = userService.selectByPrimaryKey((String) session.getAttribute("uid"));
+        return Result.builder().code(Result.SUCCESS_CODE).res(u).build();
+    }
+
+    @UserLoginToken
     @GetMapping("logout")
     public Result logout(HttpSession session){
         session.removeAttribute("uid");
-        return null;
+        return Result.builder().code(Result.SUCCESS_CODE).build();
     }
 
     @GetMapping("selectAll")
@@ -120,7 +135,7 @@ public class UserController {
             Map m = fillResult(contentList,uid);
             return Result.builder().code(Result.SUCCESS_CODE).res(m).build();
         }
-        return Result.builder().code(Result.FAILED_CODE).build();
+        return Result.builder().code(Result.SUCCESS_CODE).res(null).build();
     }
 
     @GetMapping("selectContentByTheme")
@@ -132,27 +147,16 @@ public class UserController {
             Map m = fillResult(contentList,uid);
             return Result.builder().code(Result.SUCCESS_CODE).res(m).build();
         }
-        return Result.builder().code(Result.FAILED_CODE).build();
+        return Result.builder().code(404).error("该主题不存在").build();
     }
 
-    @GetMapping("getMyFollower")
-    public Result getMyFollower(HttpSession session){
-        String uid = (String) session.getAttribute("uid");
+    @GetMapping("getPersonalFollower")
+    public Result getMyFollower(String uid,HttpSession session){
+        String currentUid = (String) session.getAttribute("uid");
         List<User> userList = followService.selectByFollower(uid);
         List<FollowedUser> followedUsers = new ArrayList<>();
         userList.stream().forEach(u->{
-            followedUsers.add(new FollowedUser().setUser(u));
-        });
-        return Result.builder().code(Result.SUCCESS_CODE).res(followedUsers).build();
-    }
-
-    @GetMapping("getMyFollowing")
-    public Result getMyFollowing(HttpSession session){
-        String uid = (String) session.getAttribute("uid");
-        List<User> userList = followService.selectByMaster(uid);
-        List<FollowedUser> followedUsers = new ArrayList<>();
-        userList.stream().forEach(u->{
-            if(followService.selectByFollow(uid,u.getUid())){
+            if(followService.selectByFollow(currentUid,u.getUid())){
                 followedUsers.add(new FollowedUser().setUser(u));
             }else {
                 followedUsers.add(new FollowedUser().setUser(u).setFollowed(false));
@@ -161,48 +165,71 @@ public class UserController {
         return Result.builder().code(Result.SUCCESS_CODE).res(followedUsers).build();
     }
 
-    @GetMapping("selectMyFeed")
-    public Result selectMyFeed(HttpSession session){
-        String uid = (String)session.getAttribute("uid");
-        /*List<String> feedList = sendContentService.selectFeedListByUid(uid);
-        List<UserSendContent> contentList = userService.selectContentByFeedList(feedList);*/
+    /**
+    *   获取关注当前用户的用户
+    */
+    @GetMapping("getPersonalFollowing")
+    public Result getMyFollowing(String uid,HttpSession session){
+        String currentUid = (String) session.getAttribute("uid");
+        List<User> userList = followService.selectByMaster(uid);
+        List<FollowedUser> followedUsers = new ArrayList<>();
+        userList.stream().forEach(u->{
+            if(followService.selectByFollow(currentUid,u.getUid())){
+                followedUsers.add(new FollowedUser().setUser(u));
+            }else {
+                followedUsers.add(new FollowedUser().setUser(u).setFollowed(false));
+            }
+        });
+        return Result.builder().code(Result.SUCCESS_CODE).res(followedUsers).build();
+    }
+
+    @GetMapping("selectPersonalFeed")
+    public Result selectPersonalFeed(String uid,HttpSession session){
+        String currentUid = (String)session.getAttribute("uid");
         List<UserSendContent> contentList = userService.selectContentByUid(uid);
+        Ordering<UserSendContent> ordering = Ordering.from(new FeedCompare());
+        Collections.sort(contentList,ordering);
         if(contentList!=null){
-            Map m = fillResult(contentList,uid);
+            Map m = fillResult(contentList,currentUid);
             return Result.builder().code(Result.SUCCESS_CODE).res(m).build();
         }
         return Result.builder().code(Result.FAILED_CODE).build();
     }
 
-    @GetMapping("selectMyKeep")
-    public Result selectMyKeep(HttpSession session){
-        String uid = (String) session.getAttribute("uid");
-        /*List<String> feedList = feedService.selectByUid(uid);
-        List<UserSendContent> contentList = userService.selectContentByFeedList(feedList);*/
-        List<UserSendContent> contentList = userService.selectContentByUid(uid);
+    @GetMapping("selectPersonalKeep")
+    public Result selectPersonalKeep(String uid ,HttpSession session){
+        String currentUid = (String) session.getAttribute("uid");
+        List<UserSendContent> contentList = feedService.selectKeepByUid(uid);
         if(contentList!=null){
-            Map m = fillResult(contentList,uid);
+            Map m = fillResult(contentList,currentUid);
             return Result.builder().code(Result.SUCCESS_CODE).res(m).build();
         }
         return Result.builder().code(Result.FAILED_CODE).build();
     }
 
-    @GetMapping("selectMyMaster")
-    public Result selectMyMaster(HttpSession session){
-        String uid = (String)session.getAttribute("uid");
+
+    /**
+    * 获取当前用户关注的用户所发布的帖子
+    */
+    @GetMapping("selectPersonalMaster")
+    public Result selectPersonalMaster(String uid,HttpSession session){
+        String currentUid = (String)session.getAttribute("uid");
         List<User> userList = followService.selectByFollower(uid);
         List<String> feedList = new ArrayList<>();
         userList.stream().forEach(u->{
             feedList.addAll(sendContentService.selectFeedListByUid(u.getUid()));
         });
         List<UserSendContent> contentList = userService.selectContentByFeedList(feedList);
+        Ordering<UserSendContent> ordering = Ordering.from(new FeedCompare());
+        Collections.sort(contentList,ordering);
         if(contentList!=null){
-            Map m = fillResult(contentList,uid);
+            Map m = fillResult(contentList,currentUid);
             return Result.builder().code(Result.SUCCESS_CODE).res(m).build();
         }
         return Result.builder().code(Result.FAILED_CODE).build();
     }
 
+    @UserLoginToken
     @GetMapping("getNotice")
     public Result getNotice(HttpSession session){
         String uid = (String)session.getAttribute("uid");
@@ -218,6 +245,7 @@ public class UserController {
         return Result.builder().code(Result.SUCCESS_CODE).res(noticeDto).build();
     }
 
+    @UserLoginToken
     @PutMapping("changeNoticeStatus")
     public Result changeNoticeStatus(@RequestBody NoticeDto noticeDto){
         noticeDto.getUnreadFeedNotice().stream().forEach(f->{
@@ -236,7 +264,7 @@ public class UserController {
         List<Liked> likeList = new ArrayList();
         List<Kept> keepList = new ArrayList();
         contentList.stream().forEach(c->{
-            c.setPicList(feedService.selectByFeedId(c.getFeedId()));
+            c.setPicList(feedService.selectPicByFeedId(c.getFeedId()));
             c.changeUrl();
             c.setThemeList(feedService.selectThemeByFeedId(c.getFeedId()));
             likeNum.add(feedService.countLike(c.getFeedId()));
@@ -255,7 +283,7 @@ public class UserController {
                 keepList.add(k);
             }
         });
-        Map m = new HashMap();
+        Map m = new HashMap(12);
         m.put("likeNum",likeNum);
         m.put("likeList",likeList);
         m.put("keepNum",keepNum);

@@ -4,8 +4,9 @@ import com.njit.zang.model.Keep;
 import com.njit.zang.model.KeepExample;
 import java.util.List;
 
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
+import com.njit.zang.model.UserSendContent;
+import org.apache.ibatis.annotations.*;
+
 @Mapper
 public interface KeepDao {
     long countByExample(KeepExample example);
@@ -25,6 +26,30 @@ public interface KeepDao {
     String selectByFeedAndUser(@Param("feedId") String feedId,@Param("uid") String uid);
 
     List<String> selectByUserId(String uid);
+
+    @Select("SELECT\n" +
+            "keep.feed_id,\n" +
+            "send_content.content,\n" +
+            "send_content.release_time,\n" +
+            "send_content.author_id,\n" +
+            "`user`.nickname,\n" +
+            "`user`.avatar\n" +
+            "FROM\n" +
+            "keep INNER JOIN\n" +
+            "(send_content,`user`) ON send_content.feed_id = keep.feed_id AND `user`.uid = send_content.author_id\n" +
+            "WHERE\n" +
+            "keep.uid = #{uid}\n" +
+            "order by send_content.release_time desc")
+    List<UserSendContent> selectFeedByUid(String uid);
+
+    @Select("select feed_id from keep where uid = #{uid} and feed_id = #{feedId}")
+    String selectByKeep(@Param("uid") String uid, @Param("feedId")String feedId);
+
+    @Insert("insert into keep (feed_id,uid)values(#{feedId},#{uid})")
+    int insertKeep(@Param("uid")String uid,@Param("feedId")String feedId);
+
+    @Delete("delete from keep where uid = #{uid} and feed_id = #{feedId}")
+    int deleteKeep(@Param("uid")String uid,@Param("feedId")String feedId);
 
     List<Keep> selectByExample(KeepExample example);
 

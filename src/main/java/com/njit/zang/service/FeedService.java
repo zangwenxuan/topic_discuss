@@ -1,11 +1,13 @@
 package com.njit.zang.service;
 
 import com.njit.zang.dto.KeepNum;
+import com.njit.zang.dto.Kept;
 import com.njit.zang.dto.LikeNum;
 import com.njit.zang.mapper.*;
 import com.njit.zang.model.Pictures;
 import com.njit.zang.model.SendContentHasTheme;
 import com.njit.zang.model.Theme;
+import com.njit.zang.model.UserSendContent;
 import io.swagger.models.auth.In;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,6 +19,7 @@ import java.util.Map;
 
 /**
  * Created by Administrator on 2019/3/26.
+ * @author zangwenxuan
  */
 @Service
 public class FeedService {
@@ -44,7 +47,7 @@ public class FeedService {
         });
     }
 
-    public List selectByFeedId(String feedId){
+    public List selectPicByFeedId(String feedId){
         return picturesDao.selectByFeedId(feedId);
     }
 
@@ -92,15 +95,21 @@ public class FeedService {
         return keepDao.selectByUserId(uid);
     }
 
+    public List<UserSendContent> selectKeepByUid(String uid){
+        return keepDao.selectFeedByUid(uid);
+    }
+
     public boolean isLike(String feedId,String uid){
-        if(likeDao.selectByFeedAndUser(feedId,uid)!=null)
+        if(likeDao.selectByFeedAndUser(feedId,uid)!=null) {
             return true;
+        }
         return false;
     }
 
     public boolean isKeep(String feedId,String uid){
-        if(keepDao.selectByFeedAndUser(feedId,uid)!=null)
+        if(keepDao.selectByFeedAndUser(feedId,uid)!=null) {
             return true;
+        }
         return false;
     }
 
@@ -118,5 +127,21 @@ public class FeedService {
 
     public int insertKeep(String feedId,String uid){
         return keepDao.insertIgnore(feedId,uid);
+    }
+
+    public void like(String uid,String feedId){
+        if(likeDao.selectByLike(uid,feedId) != null){
+            likeDao.deleteLike(uid,feedId);
+        }else {
+            likeDao.insertLike(uid,feedId);
+        }
+    }
+
+    public void keep(String uid,String feedId){
+        if(keepDao.selectByKeep(uid,feedId) != null){
+            keepDao.deleteKeep(uid,feedId);
+        }else {
+            keepDao.insertKeep(uid,feedId);
+        }
     }
 }

@@ -1,5 +1,6 @@
 package com.njit.zang.controller;
 
+import com.njit.zang.annotation.UserLoginToken;
 import com.njit.zang.dto.*;
 import com.njit.zang.model.*;
 import com.njit.zang.service.*;
@@ -49,7 +50,10 @@ public class ContentController {
     public Result selectContentDetails(String feedId,HttpSession session){
         String uid = (String) session.getAttribute("uid");
         ContentDetails contentDetails = sendContentService.selectContentDetails(feedId);
-        contentDetails.setPicList(feedService.selectByFeedId(feedId));
+        if(contentDetails == null){
+            return Result.builder().code(404).error("该贴子不存在").build();
+        }
+        contentDetails.setPicList(feedService.selectPicByFeedId(feedId));
         contentDetails.changeUrl();
         contentDetails.setThemeList(feedService.selectThemeByFeedId(feedId));
         //查询该帖子的收藏数，点赞数以及当前用户的收藏点赞状态
@@ -87,6 +91,7 @@ public class ContentController {
         return Result.builder().code(Result.SUCCESS_CODE).res(m).build();
     }
 
+    @UserLoginToken
     @PostMapping("postComment")
     public Result postComment(@RequestBody Comment comment,HttpSession session){
         String uid = (String) session.getAttribute("uid");
@@ -111,6 +116,7 @@ public class ContentController {
         return Result.builder().code(Result.SUCCESS_CODE).res(commentUserList).build();
     }
 
+    @UserLoginToken
     @PostMapping("postCommentReply")
     public Result postCommentReply(@RequestBody CommentReply commentReply,HttpSession session){
         String uid = (String) session.getAttribute("uid");
@@ -160,6 +166,7 @@ public class ContentController {
         return Result.builder().code(Result.SUCCESS_CODE).res(fileName).build();
     }
 
+    @UserLoginToken
     @PostMapping("sendFeed")
     public Result sendFeed(@RequestBody Feed feed,HttpSession session){
         feed.setAuthorId((String)session.getAttribute("uid"));
@@ -179,6 +186,7 @@ public class ContentController {
         return Result.builder().code(Result.SUCCESS_CODE).build();
     }
 
+    @UserLoginToken
     @DeleteMapping("deleteFeed")
     public Result deleteFeed(@RequestBody Map m,HttpSession session ){
         sendContentService.deleteFeed((String)m.get("feedId"));
@@ -204,6 +212,7 @@ public class ContentController {
 
     }
 
+    @UserLoginToken
     @PostMapping("freshFeed")
     public Result freshFeed(@RequestBody LikeKeepList likeKeepList, HttpSession session){
         String uid = (String) session.getAttribute("uid");
@@ -254,6 +263,23 @@ public class ContentController {
         return Result.builder().code(Result.SUCCESS_CODE).build();
     }
 
+    @UserLoginToken
+    @PostMapping("like")
+    public Result like(@RequestBody Map m,HttpSession session){
+        String uid = (String) session.getAttribute("uid");
+        feedService.like(uid,(String)m.get("feedId"));
+        return Result.builder().code(Result.SUCCESS_CODE).build();
+    }
+
+    @UserLoginToken
+    @PostMapping("keep")
+    public Result keep(@RequestBody Map m,HttpSession session){
+        String uid = (String) session.getAttribute("uid");
+        feedService.keep(uid,(String)m.get("feedId"));
+        return Result.builder().code(Result.SUCCESS_CODE).build();
+    }
+
+    @UserLoginToken
     @PostMapping("freshByFeedId")
     public Result freshByFeedId(@RequestBody LikeKeep likeKeep,HttpSession session){
         String uid = (String) session.getAttribute("uid");
@@ -261,7 +287,7 @@ public class ContentController {
         FeedNotice feedNotice = new FeedNotice();
         feedNotice.setFromUserId(likeKeep.getUid())
                 .setFeedId(likeKeep.getFeedId())
-                .setTime(new Date().getTime())
+                .setTime(System.currentTimeMillis())
                 .setToUserId(sendContentService.selectUidByFeedId(likeKeep.getFeedId()));
         if(likeKeep.getIsKeep()){
             if(1 == feedService.insertKeep(likeKeep.getFeedId(),likeKeep.getUid())){

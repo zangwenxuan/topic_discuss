@@ -6,6 +6,7 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTDecodeException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.njit.zang.service.UserService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -13,11 +14,13 @@ import org.springframework.web.servlet.ModelAndView;
 import com.njit.zang.model.User;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.lang.reflect.Method;
 
 /**
  * Created by Administrator on 2019/3/14.
  */
+@Slf4j
 public class AuthenticationInterceptor implements HandlerInterceptor {
     @Autowired
     UserService userService;
@@ -64,6 +67,11 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
                     jwtVerifier.verify(token);
                 } catch (JWTVerificationException e) {
                     throw new RuntimeException("401");
+                }
+                HttpSession session = httpServletRequest.getSession();
+                String uid = (String)session.getAttribute("uid");
+                if(uid == null){
+                    session.setAttribute("uid",userId);
                 }
                 return true;
             }

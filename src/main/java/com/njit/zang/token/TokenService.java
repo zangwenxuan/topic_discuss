@@ -3,6 +3,7 @@ package com.njit.zang.token;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.njit.zang.model.User;
+import com.njit.zang.utils.MD5Utils;
 import org.springframework.stereotype.Service;
 
 /**

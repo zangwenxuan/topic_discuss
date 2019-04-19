@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Ordering;
 import com.njit.zang.Socket.WebSocketServer;
+import com.njit.zang.annotation.UserLoginToken;
 import com.njit.zang.dto.ChatCompare;
 import com.njit.zang.dto.ChatDto;
 import com.njit.zang.dto.ChatDtoCompare;
@@ -36,9 +37,7 @@ public class ChatMessageController {
     @Autowired
     private UserService userService;
 
-    @Autowired
-    private NoticeService noticeService;
-
+    @UserLoginToken
     @GetMapping("/clearReadStatus")
     public Result clearReadStatus(HttpSession session){
         String uid = (String) session.getAttribute("uid");
@@ -46,6 +45,7 @@ public class ChatMessageController {
         return Result.builder().code(Result.SUCCESS_CODE).build();
     }
 
+    @UserLoginToken
     @DeleteMapping("clearChatNotes")
     public Result clearChatNotes(HttpSession session){
         String uid = (String) session.getAttribute("uid");
@@ -53,6 +53,7 @@ public class ChatMessageController {
         return Result.builder().code(Result.SUCCESS_CODE).build();
     }
 
+    @UserLoginToken
     @DeleteMapping("/deleteChatNote")
     public Result deleteChatNote(@RequestBody Map m,HttpSession session){
         String fromUserId = (String) session.getAttribute("uid");
@@ -61,6 +62,7 @@ public class ChatMessageController {
         return Result.builder().code(Result.SUCCESS_CODE).build();
     }
 
+    @UserLoginToken
     @PostMapping("/sendMsg")
     public Result sendMessage(@RequestBody Chat chat,HttpSession session){
         String uid = (String) session.getAttribute("uid");
@@ -93,6 +95,7 @@ public class ChatMessageController {
         return Result.builder().code(Result.SUCCESS_CODE).res(m).build();
     }
 
+    @UserLoginToken
     @GetMapping("/getMsg")
     public Result getMsg(@RequestParam("toUserId") String toUserId, HttpSession session){
         String uid = (String) session.getAttribute("uid");
@@ -101,6 +104,7 @@ public class ChatMessageController {
         return Result.builder().code(Result.SUCCESS_CODE).res(m).build();
     }
 
+    @UserLoginToken
     @GetMapping("/getChatNotice")
     public Result getMsgNotice(HttpSession session){
         String uid = (String) session.getAttribute("uid");
@@ -115,6 +119,7 @@ public class ChatMessageController {
         return Result.builder().code(Result.SUCCESS_CODE).res(chatNotice).build();
     }
 
+    @UserLoginToken
     @PutMapping("/updateChatStatus")
     public Result updateChatStatus(@RequestBody Map map,HttpSession session){
         String fromUserId = (String)map.get("netFriend");

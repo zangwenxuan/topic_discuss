@@ -11,5 +11,4 @@ import java.util.List;
 public class LikeKeepList {
     private List<Liked> likeList;
     private List<Kept> keepList;
-    private String uid;
 }

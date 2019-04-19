@@ -4,8 +4,9 @@ import com.njit.zang.model.Like;
 import com.njit.zang.model.LikeExample;
 import java.util.List;
 
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.*;
+import org.springframework.web.bind.annotation.PostMapping;
+
 @Mapper
 public interface LikeDao {
     long countByExample(LikeExample example);
@@ -19,6 +20,15 @@ public interface LikeDao {
     int deleteByFeedAndUser(@Param("feedId") String feedId,@Param("uid") String uid);
 
     int insertIgnore(@Param("feedId") String feedId,@Param("uid") String uid);
+
+    @Select("select feed_id from liked where uid = #{uid} and feed_id = #{feedId}")
+    String selectByLike(@Param("uid") String uid, @Param("feedId")String feedId);
+
+    @Insert("insert into liked (feed_id,uid)values(#{feedId},#{uid})")
+    int insertLike(@Param("uid")String uid,@Param("feedId")String feedId);
+
+    @Delete("delete from liked where uid = #{uid} and feed_id = #{feedId}")
+    int deleteLike(@Param("uid")String uid,@Param("feedId")String feedId);
 
     int countByFeedId(String feedId);
 

@@ -22,7 +22,7 @@ public class UserService {
     public UserDao userDao;
 
     public User selectByPrimaryKey(String id) {
-        return userDao.selectByPrimaryKey(id).setPassword("");
+        return userDao.selectByPrimaryKey(id);
     }
 
     public User selectByNickname(String name){
@@ -48,9 +48,15 @@ public class UserService {
     }
 
     public List<UserSendContent> selectContentByFeedList(List<String> feedList){
+        if(feedList == null || feedList.size() == 0){
+            return null;
+        }
         List<UserSendContent> sendContentList = new ArrayList();
         feedList.stream().forEach(f->{
-            sendContentList.add(userDao.selectContentByFeedId(f));
+            UserSendContent u = userDao.selectContentByFeedId(f);
+            if(u != null) {
+                sendContentList.add(u);
+            }
         });
         return sendContentList;
     }
@@ -75,7 +81,6 @@ public class UserService {
         user.setUid(UUID.randomUUID().toString().substring(24));
         user.setPassword(MD5Utils.Encode(user.getPassword()));
         userDao.insert(user);
-        user.setPassword("");
         return user;
     }
 

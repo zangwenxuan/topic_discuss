@@ -1,13 +1,11 @@
 package com.njit.zang.controller;
 
+import com.njit.zang.annotation.UserLoginToken;
 import com.njit.zang.dto.Result;
 import com.njit.zang.model.FeedNotice;
-import com.njit.zang.model.Follow;
 import com.njit.zang.service.FollowService;
 import com.njit.zang.service.NoticeService;
 import com.njit.zang.service.SendContentService;
-import net.bytebuddy.asm.Advice;
-import org.junit.validator.PublicClassValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,9 +30,8 @@ public class FollowController {
     @Autowired
     private NoticeService noticeService;
 
-    @GetMapping("getFollow")
-    public Result getFollow(HttpSession session){
-        String uid = (String)session.getAttribute("uid");
+    @GetMapping("getPersonalFollow")
+    public Result getFollow(String uid,HttpSession session){
         List followerList = followService.selectByMaster(uid);
         List masterList = followService.selectByFollower(uid);
         Map m = new HashMap();
@@ -52,6 +49,7 @@ public class FollowController {
 
     }
 
+    @UserLoginToken
     @PostMapping("newFollow")
     public Result insert(@RequestBody Map map, HttpSession session){
         String uid = (String)session.getAttribute("uid");
@@ -67,6 +65,7 @@ public class FollowController {
         return Result.builder().code(Result.SUCCESS_CODE).res(true).build();
     }
 
+    @UserLoginToken
     @DeleteMapping("cancelFollow")
     public Result cancelFollow(@RequestBody Map map, HttpSession session){
         String uid = (String)session.getAttribute("uid");
@@ -86,8 +85,9 @@ public class FollowController {
     public Result queryFollowerCount(String masterId){
         List l =followService.selectByMaster(masterId);
         int length = 0;
-        if(l!=null)
+        if(l!=null) {
             length = l.size();
+        }
         return Result.builder().code(Result.SUCCESS_CODE).res(length).build();
     }
 
