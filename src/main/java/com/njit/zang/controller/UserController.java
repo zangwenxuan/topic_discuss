@@ -111,6 +111,28 @@ public class UserController {
         return Result.builder().code(Result.SUCCESS_CODE).res(u).build();
     }
 
+    @GetMapping("getUserInfo")
+    public Result getUserInfo(String uid,HttpSession session){
+        log.info(uid);
+        if(uid.equals("undefined")){
+            uid = (String) session.getAttribute("uid");
+        }
+        User u = userService.selectByPrimaryKey(uid);
+        if(u == null){
+            return Result.builder().code(404).res(null).error("该用户不存在").build();
+        }
+        return Result.builder().code(Result.SUCCESS_CODE).res(u).build();
+    }
+
+    @UserLoginToken
+    @PostMapping("updateUser")
+    public Result updateUser(@RequestBody User u,HttpSession session){
+        String uid = (String) session.getAttribute("uid");
+        u.setUid(uid);
+        userService.update(u);
+        return Result.builder().code(Result.SUCCESS_CODE).build();
+    }
+
     @UserLoginToken
     @GetMapping("logout")
     public Result logout(HttpSession session){
@@ -204,7 +226,7 @@ public class UserController {
             Map m = fillResult(contentList,currentUid);
             return Result.builder().code(Result.SUCCESS_CODE).res(m).build();
         }
-        return Result.builder().code(Result.FAILED_CODE).build();
+        return Result.builder().code(Result.SUCCESS_CODE).res(null).build();
     }
 
 
@@ -221,12 +243,12 @@ public class UserController {
         });
         List<UserSendContent> contentList = userService.selectContentByFeedList(feedList);
         Ordering<UserSendContent> ordering = Ordering.from(new FeedCompare());
-        Collections.sort(contentList,ordering);
-        if(contentList!=null){
-            Map m = fillResult(contentList,currentUid);
-            return Result.builder().code(Result.SUCCESS_CODE).res(m).build();
+        if(contentList ==null){
+            contentList = new ArrayList<>();
         }
-        return Result.builder().code(Result.FAILED_CODE).build();
+        Collections.sort(contentList,ordering);
+        Map m = fillResult(contentList,currentUid);
+        return Result.builder().code(Result.SUCCESS_CODE).res(m).build();
     }
 
     @UserLoginToken
@@ -263,26 +285,28 @@ public class UserController {
         List<MessageNum> messageNum = new ArrayList();
         List<Liked> likeList = new ArrayList();
         List<Kept> keepList = new ArrayList();
-        contentList.stream().forEach(c->{
-            c.setPicList(feedService.selectPicByFeedId(c.getFeedId()));
-            c.changeUrl();
-            c.setThemeList(feedService.selectThemeByFeedId(c.getFeedId()));
-            likeNum.add(feedService.countLike(c.getFeedId()));
-            keepNum.add(feedService.countKeep(c.getFeedId()));
-            messageNum.add(commentService.countMessage(c.getFeedId()));
-            if(uid!=null&&feedService.isLike(c.getFeedId(),uid)){
-                Liked l = new Liked();
-                l.setFeedId(c.getFeedId());
-                l.setIsLiked(true);
-                likeList.add(l);
-            }
-            if(uid!=null&&feedService.isKeep(c.getFeedId(),uid)){
-                Kept k = new Kept();
-                k.setFeedId(c.getFeedId());
-                k.setIsKeep(true);
-                keepList.add(k);
-            }
-        });
+        if(contentList != null) {
+            contentList.stream().forEach(c -> {
+                c.setPicList(feedService.selectPicByFeedId(c.getFeedId()));
+                c.changeUrl();
+                c.setThemeList(feedService.selectThemeByFeedId(c.getFeedId()));
+                likeNum.add(feedService.countLike(c.getFeedId()));
+                keepNum.add(feedService.countKeep(c.getFeedId()));
+                messageNum.add(commentService.countMessage(c.getFeedId()));
+                if (uid != null && feedService.isLike(c.getFeedId(), uid)) {
+                    Liked l = new Liked();
+                    l.setFeedId(c.getFeedId());
+                    l.setIsLiked(true);
+                    likeList.add(l);
+                }
+                if (uid != null && feedService.isKeep(c.getFeedId(), uid)) {
+                    Kept k = new Kept();
+                    k.setFeedId(c.getFeedId());
+                    k.setIsKeep(true);
+                    keepList.add(k);
+                }
+            });
+        }
         Map m = new HashMap(12);
         m.put("likeNum",likeNum);
         m.put("likeList",likeList);

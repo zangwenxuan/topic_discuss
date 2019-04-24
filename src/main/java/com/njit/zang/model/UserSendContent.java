@@ -15,6 +15,7 @@ public class UserSendContent {
     private long releaseTime;
     private String nickname;
     private String avatar;
+    private String cover;
     private String content;
     private List picList;
     private List themeList;

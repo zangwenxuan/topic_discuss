@@ -1,8 +1,10 @@
 package com.njit.zang.controller;
 
 import com.njit.zang.annotation.UserLoginToken;
+import com.njit.zang.dto.FollowedUser;
 import com.njit.zang.dto.Result;
 import com.njit.zang.model.FeedNotice;
+import com.njit.zang.model.User;
 import com.njit.zang.service.FollowService;
 import com.njit.zang.service.NoticeService;
 import com.njit.zang.service.SendContentService;
@@ -10,10 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by Administrator on 2019/3/29.
@@ -112,5 +111,38 @@ public class FollowController {
             m.put("isFollowed",false);
         }
         return Result.builder().code(Result.SUCCESS_CODE).res(m).build();
+    }
+
+    @GetMapping("queryFollower")
+    public Result queryFollower(String uid,HttpSession session){
+        String currentUid = (String) session.getAttribute("uid");
+        List<User> userList = followService.selectByFollower(uid);
+        List<FollowedUser> followedUsers = new ArrayList<>();
+        userList.stream().forEach(u->{
+            if(followService.selectByFollow(currentUid,u.getUid())){
+                followedUsers.add(new FollowedUser().setUser(u));
+            }else {
+                followedUsers.add(new FollowedUser().setUser(u).setFollowed(false));
+            }
+        });
+        return Result.builder().code(Result.SUCCESS_CODE).res(followedUsers).build();
+    }
+
+    /**
+     *   获取关注当前用户的用户
+     */
+    @GetMapping("queryFollowing")
+    public Result queryFollowing(String uid,HttpSession session){
+        String currentUid = (String) session.getAttribute("uid");
+        List<User> userList = followService.selectByMaster(uid);
+        List<FollowedUser> followedUsers = new ArrayList<>();
+        userList.stream().forEach(u->{
+            if(followService.selectByFollow(currentUid,u.getUid())){
+                followedUsers.add(new FollowedUser().setUser(u));
+            }else {
+                followedUsers.add(new FollowedUser().setUser(u).setFollowed(false));
+            }
+        });
+        return Result.builder().code(Result.SUCCESS_CODE).res(followedUsers).build();
     }
 }

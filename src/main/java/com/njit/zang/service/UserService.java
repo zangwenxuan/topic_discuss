@@ -84,4 +84,17 @@ public class UserService {
         return user;
     }
 
+    public void update(User u){
+        if(u.getCover()!=null){
+            userDao.updateCover(u.getCover(),u.getUid());
+        }
+        log.info(u.toString());
+        if(u.getSignature() != null){
+            userDao.updateSignature(u.getSignature(),u.getUid());
+        }
+        if(u.getAvatar() != null) {
+            userDao.updateAvatar(u.getAvatar(),u.getUid());
+        }
+    }
+
 }

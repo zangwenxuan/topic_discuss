@@ -8,6 +8,7 @@ import com.njit.zang.model.UserSendContent;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
 import org.springframework.web.bind.annotation.PostMapping;
 
 @Mapper
@@ -33,6 +34,16 @@ public interface UserDao {
 
     @Select("select * from `user` where email = #{email}")
     User selectUserByEmail(@Param("email") String email);
+
+    @Update("update user set avatar = #{avatar} where uid = #{uid} ")
+    int updateAvatar(@Param("avatar") String avatar,@Param("uid") String uid);
+
+    @Update("update user set cover = #{cover} where uid = #{uid} ")
+    int updateCover(@Param("cover") String cover,@Param("uid") String uid);
+
+    @Update("update user set signature = #{signature} where uid = #{uid} ")
+    int updateSignature(@Param("signature") String signature,@Param("uid") String uid);
+
 
     List<User> selectAllUsers();
 

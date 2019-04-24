@@ -7,12 +7,15 @@
     <result column="password" jdbcType="VARCHAR" property="password" />
     <result column="nickname" jdbcType="VARCHAR" property="nickname" />
     <result column="avatar" jdbcType="VARCHAR" property="avatar" />
+    <result column="cover" jdbcType="VARCHAR" property="cover" />
+    <result column="signature" jdbcType="VARCHAR" property="signature" />
   </resultMap>
   <resultMap id="UserSendContent" type="com.njit.zang.model.UserSendContent">
     <result column="content" jdbcType="VARCHAR" property="content" />
     <result column="author_id" jdbcType="VARCHAR" property="authorId" />
     <result column="nickname" jdbcType="VARCHAR" property="nickname" />
     <result column="avatar" jdbcType="VARCHAR" property="avatar" />
+    <result column="cover" jdbcType="VARCHAR" property="cover" />
     <result column="release_time" jdbcType="BIGINT" property="releaseTime" />
     <result column="feed_id" jdbcType="INTEGER" property="feedId" />
   </resultMap>
@@ -75,7 +78,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List">
-    `uid`, email, `password`, nickname, avatar
+    `uid`, email, `password`, nickname, avatar, cover, signature
   </sql>
   <select id="selectByExample" parameterType="com.njit.zang.model.UserExample" resultMap="BaseResultMap">
     select
@@ -114,6 +117,7 @@
     SELECT
       `user`.nickname,
       `user`.avatar,
+      `user`.cover,
       send_content.content,
       send_content.author_id as author_id,
       send_content.feed_id,
@@ -129,6 +133,7 @@
     SELECT
     `user`.nickname,
     `user`.avatar,
+    `user`.cover,
     send_content.content,
     send_content.author_id as author_id,
     send_content.feed_id,
@@ -146,6 +151,7 @@
   SELECT
     `user`.nickname,
     `user`.avatar,
+    `user`.cover,
     send_content.content,
     send_content.author_id as author_id,
     send_content.feed_id,
@@ -169,7 +175,7 @@
     </if>
   </delete>
   <insert id="insert" keyColumn="uid" keyProperty="uid" parameterType="com.njit.zang.model.User" useGeneratedKeys="true">
-    insert into user (email, `password`, nickname, avatar,uid
+    insert into user (email, `password`, nickname, avatar, uid
       )
     values (#{email,jdbcType=VARCHAR}, #{password,jdbcType=VARCHAR}, #{nickname,jdbcType=VARCHAR}, #{avatar,jdbcType=VARCHAR}, #{uid,jdbcType=VARCHAR}
       )
