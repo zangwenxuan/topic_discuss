@@ -2,7 +2,7 @@ package com.njit.zang.controller;
 
 import com.google.common.collect.Ordering;
 import com.njit.zang.annotation.UserLoginToken;
-import com.njit.zang.token.TokenService;
+import com.njit.zang.utils.Token;
 import com.njit.zang.utils.MD5Utils;
 import com.njit.zang.utils.Mail;
 import com.njit.zang.dto.*;
@@ -14,8 +14,6 @@ import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
@@ -51,7 +49,7 @@ public class UserController {
     public Mail mailSend;
 
     @Autowired
-    public TokenService tokenService;
+    public Token token;
 
     @ApiOperation(value="获取用户详细信息", notes="根据id来获取用户详细信息")
     @ApiImplicitParam(name = "id", value = "用户ID", required = true, dataType = "String")
@@ -71,7 +69,7 @@ public class UserController {
         String captcha = (String)session.getAttribute("captcha");
         if(captcha!=null && captcha.equals(registerUser.getCaptcha())){
             User user = userService.insert(registerUser.getUser());
-            String token = tokenService.getToken(user);
+            String token = this.token.getToken(user);
             return Result.builder().code(Result.SUCCESS_CODE).res(token).build();
         }
         return Result.builder().code(Result.FAILED_CODE).build();
@@ -83,12 +81,12 @@ public class UserController {
         String password = MD5Utils.Encode(user.getPassword());
         if(u!=null&&u.getPassword().equals(password)){
             session.setAttribute("uid",u.getUid());
-            return Result.builder().code(Result.SUCCESS_CODE).res(tokenService.getToken(u)).build();
+            return Result.builder().code(Result.SUCCESS_CODE).res(token.getToken(u)).build();
         }
         u = userService.selectByEmail(user.getUid());
         if(u!=null&&u.getPassword().equals(password)){
             session.setAttribute("uid",u.getUid());
-            return Result.builder().code(Result.SUCCESS_CODE).res(tokenService.getToken(u)).build();
+            return Result.builder().code(Result.SUCCESS_CODE).res(token.getToken(u)).build();
         }
 
         return Result.builder().code(Result.SUCCESS_CODE).res(null).build();

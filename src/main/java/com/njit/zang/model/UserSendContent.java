@@ -16,6 +16,7 @@ public class UserSendContent {
     private String nickname;
     private String avatar;
     private String cover;
+    private String signature;
     private String content;
     private List picList;
     private List themeList;

@@ -16,6 +16,7 @@
     <result column="nickname" jdbcType="VARCHAR" property="nickname" />
     <result column="avatar" jdbcType="VARCHAR" property="avatar" />
     <result column="cover" jdbcType="VARCHAR" property="cover" />
+    <result column="signature" jdbcType="VARCHAR" property="signature" />
     <result column="release_time" jdbcType="BIGINT" property="releaseTime" />
     <result column="feed_id" jdbcType="INTEGER" property="feedId" />
   </resultMap>
@@ -78,7 +79,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List">
-    `uid`, email, `password`, nickname, avatar, cover, signature
+    `uid`, email, nickname, avatar, cover, signature
   </sql>
   <select id="selectByExample" parameterType="com.njit.zang.model.UserExample" resultMap="BaseResultMap">
     select
@@ -103,14 +104,13 @@
     </if>
   </select>
   <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
-    select 
-    <include refid="Base_Column_List" />
+    select *
     from user
     where `uid` = #{uid,jdbcType=VARCHAR}
   </select>
   
   <select id="selectAllUsers" resultMap="BaseResultMap">
-    select * from user
+    select <include refid="Base_Column_List" /> from user
   </select>
   
   <select id="selectAllContent" resultMap="UserSendContent">
@@ -118,6 +118,7 @@
       `user`.nickname,
       `user`.avatar,
       `user`.cover,
+      `user`.signature,
       send_content.content,
       send_content.author_id as author_id,
       send_content.feed_id,
@@ -134,6 +135,7 @@
     `user`.nickname,
     `user`.avatar,
     `user`.cover,
+    `user`.signature,
     send_content.content,
     send_content.author_id as author_id,
     send_content.feed_id,
@@ -152,6 +154,7 @@
     `user`.nickname,
     `user`.avatar,
     `user`.cover,
+    `user`.signature,
     send_content.content,
     send_content.author_id as author_id,
     send_content.feed_id,

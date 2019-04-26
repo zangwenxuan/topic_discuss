@@ -22,7 +22,7 @@ public class SendContentService {
     }
 
     public int insert(SendContent sendContent){
-        sendContent.setReleaseTime(new Date().getTime());
+        sendContent.setReleaseTime(System.currentTimeMillis());
         return sendContentDao.insert(sendContent);
     }
 

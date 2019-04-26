@@ -92,7 +92,9 @@
     SELECT
     `user`.uid,
     `user`.nickname,
-    `user`.avatar
+    `user`.avatar,
+    `user`.cover,
+    `user`.signature
     FROM
     follow ,
     `user`
@@ -104,7 +106,9 @@
     SELECT
     `user`.uid,
     `user`.nickname,
-    `user`.avatar
+    `user`.avatar,
+    `user`.cover,
+    `user`.signature
     FROM
     follow ,
     `user`

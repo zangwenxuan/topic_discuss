@@ -104,6 +104,7 @@ public class FollowController {
         String userId = (String)session.getAttribute("uid");
         Map m = new HashMap();
         m.put("followerNum",followService.queryFollowerCount(uid));
+        m.put("followingNum",followService.queryMasterCount(uid));
         m.put("feedNum",sendContentService.countFeed(uid));
         if(userId!=null) {
             m.put("isFollowed", followService.selectByFollow(userId, uid));
