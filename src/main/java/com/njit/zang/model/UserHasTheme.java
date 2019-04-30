@@ -1,33 +1,22 @@
 package com.njit.zang.model;
 
+import lombok.Data;
+import lombok.experimental.Accessors;
+
 import java.io.Serializable;
 
 /**
  * user_has_theme
  * @author 
  */
+@Data
+@Accessors(chain = true)
 public class UserHasTheme implements Serializable {
     private String userUid;
 
     private String themeName;
 
     private static final long serialVersionUID = 1L;
-
-    public String getUserUid() {
-        return userUid;
-    }
-
-    public void setUserUid(String userUid) {
-        this.userUid = userUid;
-    }
-
-    public String getThemeName() {
-        return themeName;
-    }
-
-    public void setThemeName(String themeName) {
-        this.themeName = themeName;
-    }
 
     @Override
     public boolean equals(Object that) {

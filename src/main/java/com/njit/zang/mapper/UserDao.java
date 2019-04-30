@@ -44,6 +44,12 @@ public interface UserDao {
     @Update("update user set signature = #{signature} where uid = #{uid} ")
     int updateSignature(@Param("signature") String signature,@Param("uid") String uid);
 
+    @Update("update user set password = #{password} where uid = #{uid}")
+    int updatePassword(@Param("password") String password,@Param("uid") String uid);
+
+    @Update("update user set email = #{email} where uid = #{uid}")
+    int updateEmail(@Param("email") String email,@Param("uid") String uid);
+
 
     List<User> selectAllUsers();
 

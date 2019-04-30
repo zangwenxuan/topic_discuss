@@ -1,7 +1,9 @@
 package com.njit.zang.service;
 
 import com.njit.zang.mapper.UserDao;
+import com.njit.zang.mapper.UserHasThemeDao;
 import com.njit.zang.model.User;
+import com.njit.zang.model.UserHasTheme;
 import com.njit.zang.model.UserSendContent;
 import com.njit.zang.utils.MD5Utils;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +22,9 @@ import java.util.UUID;
 public class UserService {
     @Autowired
     public UserDao userDao;
+
+    @Autowired
+    private UserHasThemeDao userHasThemeDao;
 
     public User selectByPrimaryKey(String id) {
         return userDao.selectByPrimaryKey(id);
@@ -66,14 +71,16 @@ public class UserService {
     }
 
     public boolean checkName(String name){
-        if(userDao.checkName(name) != null)
+        if(userDao.checkName(name) != null) {
             return true;
+        }
         return false;
     }
 
     public boolean checkEmail(String email){
-        if(userDao.checkEmail(email) != null)
+        if(userDao.checkEmail(email) != null) {
             return true;
+        }
         return false;
     }
 
@@ -84,16 +91,42 @@ public class UserService {
         return user;
     }
 
+    public void insertUserHasTheme(UserHasTheme u){
+        userHasThemeDao.insert(u);
+    }
+    public void insertUserHasTheme(String uid,String themeName){
+        UserHasTheme userHasTheme = new UserHasTheme();
+        userHasTheme.setUserUid(uid)
+                .setThemeName(themeName);
+        userHasThemeDao.insert(userHasTheme);
+    }
+
+    public void deleteUserHasTheme(String uid,String themeName){
+        userHasThemeDao.deleteUserHasTheme(uid,themeName);
+    }
+    public void deleteUserHasTheme(UserHasTheme u){
+        userHasThemeDao.deleteUserHasTheme(u.getUserUid(),u.getThemeName());
+    }
+
+    public List<String> selectThemeList(String uid){
+        return userHasThemeDao.selectThemeList(uid);
+    }
     public void update(User u){
         if(u.getCover()!=null){
             userDao.updateCover(u.getCover(),u.getUid());
         }
-        log.info(u.toString());
         if(u.getSignature() != null){
             userDao.updateSignature(u.getSignature(),u.getUid());
         }
         if(u.getAvatar() != null) {
             userDao.updateAvatar(u.getAvatar(),u.getUid());
+        }
+        if(u.getPassword() != null) {
+            u.setPassword(MD5Utils.Encode(u.getPassword()));
+            userDao.updatePassword(u.getPassword(),u.getUid());
+        }
+        if(u.getEmail() != null){
+            userDao.updateEmail(u.getEmail(),u.getUid());
         }
     }
 

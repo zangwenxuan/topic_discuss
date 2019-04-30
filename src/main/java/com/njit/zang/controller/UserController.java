@@ -2,6 +2,7 @@ package com.njit.zang.controller;
 
 import com.google.common.collect.Ordering;
 import com.njit.zang.annotation.UserLoginToken;
+import com.njit.zang.model.UserHasTheme;
 import com.njit.zang.utils.Token;
 import com.njit.zang.utils.MD5Utils;
 import com.njit.zang.utils.Mail;
@@ -12,6 +13,7 @@ import com.njit.zang.service.*;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -64,6 +66,50 @@ public class UserController {
         return Result.builder().code(Result.SUCCESS_CODE).build();
     }
 
+    @UserLoginToken
+    @GetMapping("getMailCaptcha")
+    public Result getMailCaptcha(HttpSession session){
+        String uid = (String)session.getAttribute("uid");
+        User u = userService.selectByPrimaryKey(uid);
+        session.setAttribute("captcha",mailSend.sendMessage(u.getEmail()));
+        return Result.builder().code(Result.SUCCESS_CODE).build();
+    }
+
+    @UserLoginToken
+    @PostMapping("checkCaptcha")
+    public Result checkCaptcha(@RequestBody Map<String,String> map,HttpSession session){
+        String captcha = (String)session.getAttribute("captcha");
+        if(captcha != null && captcha.equals(map.get("captcha"))) {
+            session.removeAttribute("captcha");
+            return Result.builder().code(Result.SUCCESS_CODE).res(true).build();
+        }
+        return Result.builder().code(Result.FAILED_CODE).res(false).build();
+    }
+
+    @UserLoginToken
+    @PostMapping("setPassword")
+    public Result setPassword(@RequestBody User user,HttpSession session){
+        String uid = (String)session.getAttribute("uid");
+        user.setUid(uid);
+        userService.update(user);
+        return Result.builder().code(Result.SUCCESS_CODE).res(true).build();
+    }
+
+    @UserLoginToken
+    @PostMapping("bindMail")
+    public Result bindMail(@RequestBody Map map,HttpSession session){
+        String captcha = (String) session.getAttribute("captcha");
+        if(captcha != null && captcha.equals(map.get("captcha").toString())){
+            String uid = (String) session.getAttribute("uid");
+            User user = new User();
+            user.setUid(uid)
+                    .setEmail((String)map.get("email"));
+            userService.update(user);
+            return Result.builder().code(Result.SUCCESS_CODE).res(true).build();
+        }
+        return Result.builder().code(Result.SUCCESS_CODE).res(false).build();
+    }
+
     @PostMapping("register")
     public Result register(@RequestBody RegisterUser registerUser,HttpSession session){
         String captcha = (String)session.getAttribute("captcha");
@@ -106,7 +152,12 @@ public class UserController {
     @GetMapping("getCurrentUser")
     public Result getCurrentUser(HttpSession session){
         User u = userService.selectByPrimaryKey((String) session.getAttribute("uid"));
-        return Result.builder().code(Result.SUCCESS_CODE).res(u).build();
+        CurrentUserInfo currentUser = new CurrentUserInfo(u);
+        currentUser.setFeedNum(sendContentService.countFeed(u.getUid()))
+                .setFollowerNum(followService.queryFollowerCount(u.getUid()))
+                .setFollowingNum(followService.queryMasterCount(u.getUid()))
+                .setThemeList(userService.selectThemeList(u.getUid()));
+        return Result.builder().code(Result.SUCCESS_CODE).res(currentUser).build();
     }
 
     @GetMapping("getUserInfo")
@@ -120,6 +171,22 @@ public class UserController {
             return Result.builder().code(404).res(null).error("该用户不存在").build();
         }
         return Result.builder().code(Result.SUCCESS_CODE).res(u).build();
+    }
+
+    @PostMapping("tag/add")
+    public Result addThemeWithUser(@RequestBody UserHasTheme userHasTheme,HttpSession session){
+        String uid = (String) session.getAttribute("uid");
+        userHasTheme.setUserUid(uid);
+        userService.insertUserHasTheme(userHasTheme);
+        return Result.builder().code(Result.SUCCESS_CODE).res(userHasTheme.getThemeName()).build();
+    }
+
+    @DeleteMapping("tag/cancel")
+    public Result cancelThemeWithUser(@RequestBody UserHasTheme userHasTheme,HttpSession session){
+        String uid = (String) session.getAttribute("uid");
+        userHasTheme.setUserUid(uid);
+        userService.deleteUserHasTheme(userHasTheme);
+        return Result.builder().code(Result.SUCCESS_CODE).res(userHasTheme.getThemeName()).build();
     }
 
     @UserLoginToken

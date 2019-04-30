@@ -22,7 +22,6 @@ public class Mail {
     public String sendMessage(String toMail){
         String captcha = this.randomNum();
         String text = "尊敬的用户您好，你本次的验证码为"+captcha+",请尽快使用，防止验证码失效！";
-        System.out.println(text);
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom(SEVER_MAIL);
         message.setTo(toMail);
@@ -30,6 +29,7 @@ public class Mail {
         message.setText(text);
 
         mailSender.send(message);
+        System.out.println(text);
         return captcha;
     }
 

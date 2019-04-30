@@ -58,7 +58,7 @@ public class FollowController {
         feedNotice.setFromUserId(uid)
                 .setToUserId((String)map.get("master"))
                 .setType(4)
-                .setTime(new Date().getTime());
+                .setTime(System.currentTimeMillis());
         noticeService.insertFeedNotice(feedNotice);
 
         return Result.builder().code(Result.SUCCESS_CODE).res(true).build();
@@ -74,7 +74,7 @@ public class FollowController {
         feedNotice.setFromUserId(uid)
                 .setToUserId((String)map.get("master"))
                 .setType(-3)
-                .setTime(new Date().getTime());
+                .setTime(System.currentTimeMillis());
         noticeService.insertFeedNotice(feedNotice);
 
         return Result.builder().code(Result.SUCCESS_CODE).res(false).build();

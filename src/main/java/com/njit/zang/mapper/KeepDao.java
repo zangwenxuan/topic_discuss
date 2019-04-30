@@ -39,7 +39,7 @@ public interface KeepDao {
             "(send_content,`user`) ON send_content.feed_id = keep.feed_id AND `user`.uid = send_content.author_id\n" +
             "WHERE\n" +
             "keep.uid = #{uid}\n" +
-            "order by send_content.release_time desc")
+            "order by keep.sort desc")
     List<UserSendContent> selectFeedByUid(String uid);
 
     @Select("select feed_id from keep where uid = #{uid} and feed_id = #{feedId}")

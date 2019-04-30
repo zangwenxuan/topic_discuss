@@ -44,16 +44,18 @@ public class FollowService {
     public int queryMasterCount(String followerId){
         List l = selectByFollower(followerId);
         int length = 0;
-        if(l!=null)
+        if(l!=null) {
             length = l.size();
+        }
         return length;
     }
 
     public int queryFollowerCount(String masterId){
         List l =selectByMaster(masterId);
         int length = 0;
-        if(l!=null)
+        if(l!=null) {
             length = l.size();
+        }
         return length;
     }
 }
