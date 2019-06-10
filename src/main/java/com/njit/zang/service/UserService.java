@@ -1,5 +1,7 @@
 package com.njit.zang.service;
 
+import com.njit.zang.dto.FeedItem;
+import com.njit.zang.dto.UserCard;
 import com.njit.zang.mapper.UserDao;
 import com.njit.zang.mapper.UserHasThemeDao;
 import com.njit.zang.model.User;
@@ -70,6 +72,10 @@ public class UserService {
         return userDao.selectContentByUid(uid);
     }
 
+    public List<FeedItem> selectFeedItemByUid(String uid){
+        return userDao.selectFeedItemByUid(uid);
+    }
+
     public boolean checkName(String name){
         if(userDao.checkName(name) != null) {
             return true;
@@ -128,6 +134,14 @@ public class UserService {
         if(u.getEmail() != null){
             userDao.updateEmail(u.getEmail(),u.getUid());
         }
+    }
+
+    public List<User> searchUser(String nickname){
+        return userDao.searchUser("%"+nickname+"%");
+    }
+
+    public UserCard queryUserCard(String uid){
+        return userDao.queryUserCard(uid);
     }
 
 }

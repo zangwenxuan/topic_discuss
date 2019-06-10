@@ -3,11 +3,14 @@ package com.njit.zang.controller;
 import com.njit.zang.annotation.UserLoginToken;
 import com.njit.zang.dto.FollowedUser;
 import com.njit.zang.dto.Result;
+import com.njit.zang.dto.UserCard;
 import com.njit.zang.model.FeedNotice;
 import com.njit.zang.model.User;
 import com.njit.zang.service.FollowService;
 import com.njit.zang.service.NoticeService;
 import com.njit.zang.service.SendContentService;
+import com.njit.zang.service.UserService;
+import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,6 +25,9 @@ import java.util.*;
 public class FollowController {
     @Autowired
     private FollowService followService;
+
+    @Autowired
+    private UserService userService;
 
     @Autowired
     private SendContentService sendContentService;
@@ -103,15 +109,16 @@ public class FollowController {
     public Result queryUserCard(@RequestParam("uid") String uid,HttpSession session){
         String userId = (String)session.getAttribute("uid");
         Map m = new HashMap();
-        m.put("followerNum",followService.queryFollowerCount(uid));
-        m.put("followingNum",followService.queryMasterCount(uid));
-        m.put("feedNum",sendContentService.countFeed(uid));
+        UserCard userCard = new UserCard();
+        userCard = userService.queryUserCard(uid);
         if(userId!=null) {
             m.put("isFollowed", followService.selectByFollow(userId, uid));
+            userCard.setFollowed(followService.selectByFollow(userId, uid));
         }else{
             m.put("isFollowed",false);
+            userCard.setFollowed(false);
         }
-        return Result.builder().code(Result.SUCCESS_CODE).res(m).build();
+        return Result.builder().code(Result.SUCCESS_CODE).res(userCard).build();
     }
 
     @GetMapping("queryFollower")

@@ -128,7 +128,6 @@
       INNER JOIN send_content ON send_content.author_id = `user`.uid
       ORDER BY
         send_content.release_time DESC
-
   </select>
   <select id="selectContentByFeedId" parameterType="java.lang.String" resultMap="UserSendContent">
     SELECT

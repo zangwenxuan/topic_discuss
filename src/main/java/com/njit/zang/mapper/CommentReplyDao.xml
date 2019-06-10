@@ -199,12 +199,12 @@
   </select>
   <select id="countByFeedId" parameterType="java.lang.String" resultType="java.lang.Integer">
     SELECT
-count(*)
-FROM
-`comment`
-INNER JOIN comment_reply ON comment_reply.comment_id = `comment`.comment_id
-WHERE
-`comment`.send_content_feed_id = #{feedId,jdbcType=VARCHAR}
+    count(*)
+    FROM
+    `comment`
+    INNER JOIN comment_reply ON comment_reply.comment_id = `comment`.comment_id
+    WHERE
+    `comment`.send_content_feed_id = #{feedId,jdbcType=VARCHAR}
 
   </select>
   <update id="updateByExampleSelective" parameterType="map">

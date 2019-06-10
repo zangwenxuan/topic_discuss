@@ -1,5 +1,6 @@
 package com.njit.zang.service;
 
+import com.njit.zang.dto.FeedItem;
 import com.njit.zang.mapper.SendContentDao;
 import com.njit.zang.model.ContentDetails;
 import com.njit.zang.model.SendContent;
@@ -21,9 +22,14 @@ public class SendContentService {
             return sendContentDao.selectContentDetails(feedId);
     }
 
-    public int insert(SendContent sendContent){
+    public FeedItem insert(SendContent sendContent){
         sendContent.setReleaseTime(System.currentTimeMillis());
-        return sendContentDao.insert(sendContent);
+        sendContentDao.insert(sendContent);
+        return selectFeedById(sendContent.getFeedId());
+    }
+
+    public FeedItem selectFeedById(String feedId){
+        return sendContentDao.selectFeedItemByFeedId(feedId);
     }
 
     public int countFeed(String uid){

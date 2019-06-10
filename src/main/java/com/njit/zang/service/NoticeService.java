@@ -39,7 +39,8 @@ public class NoticeService {
     }
 
     public void insertFeedNotice(FeedNotice feedNotice){
-        feedNotice.setFnId(UUID.randomUUID().toString().substring(24));
+        feedNotice.setFnId(UUID.randomUUID().toString().substring(24))
+                .setTime(System.currentTimeMillis());
         feedNoticeDao.insert(feedNotice);
     }
 

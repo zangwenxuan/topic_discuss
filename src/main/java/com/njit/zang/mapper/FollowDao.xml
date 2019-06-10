@@ -115,7 +115,6 @@
     WHERE
     follow.follower = `user`.uid AND
     follow.`master` = #{master,jdbcType=VARCHAR}
-
   </select>
   <select id="selectByFollow" parameterType="java.lang.String" resultMap="BaseResultMap">
     SELECT * from follow WHERE follower = #{follower,jdbcType=VARCHAR} AND master = #{master,jdbcType=VARCHAR}

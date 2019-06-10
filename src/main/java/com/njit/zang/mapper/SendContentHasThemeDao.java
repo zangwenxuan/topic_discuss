@@ -6,6 +6,8 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
+
 @Mapper
 public interface SendContentHasThemeDao {
     long countByExample(SendContentHasThemeExample example);
@@ -15,6 +17,9 @@ public interface SendContentHasThemeDao {
     int insert(SendContentHasTheme record);
 
     int insertSelective(SendContentHasTheme record);
+
+    @Select("SELECT send_content_has_theme.theme_name from send_content_has_theme GROUP BY send_content_has_theme.theme_name ORDER BY count(*) DESC LIMIT 0,10")
+    List<String> selectHotTheme();
 
     List<String> selectByFeedId(String feedId);
 

@@ -69,12 +69,12 @@ public class ChatMessageController {
         User user = userService.selectByPrimaryKey(uid);
         log.info(user.toString());
         chat.setFromUserId(uid);
-        chat.setTime(new Date().getTime()).setRead(-1);
+        chat.setTime(System.currentTimeMillis()).setRead(-1);
 
         ChatDto chatDto = new ChatDto();
         chatDto.setAvatar(user.getAvatar())
                 .setNickname(user.getNickname())
-                .setTime(new Date().getTime())
+                .setTime(System.currentTimeMillis())
                 .setContent(chat.getMessage())
                 .setUid(uid);
 

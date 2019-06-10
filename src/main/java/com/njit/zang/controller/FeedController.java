@@ -7,6 +7,7 @@ import com.njit.zang.model.User;
 import com.njit.zang.model.UserSendContent;
 import com.njit.zang.service.*;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.ibatis.annotations.Param;
 import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -37,15 +38,15 @@ public class FeedController {
     @Autowired
     private SendContentService sendContentService;
 
+    @UserLoginToken
     @GetMapping("selectPersonalFeed")
     public Result selectPersonalFeed(String uid, HttpSession session){
         String currentUid = (String)session.getAttribute("uid");
-        List<UserSendContent> contentList = userService.selectContentByUid(uid);
+        List<FeedItem> contentList = userService.selectFeedItemByUid(uid);
         Ordering<UserSendContent> ordering = Ordering.from(new FeedCompare());
-        Collections.sort(contentList,ordering);
         if(contentList!=null){
-            Map m = fillResult(contentList,currentUid);
-            return Result.builder().code(Result.SUCCESS_CODE).res(m).build();
+            fillResult(contentList,currentUid);
+            return Result.builder().code(Result.SUCCESS_CODE).res(contentList).build();
         }
         return Result.builder().code(Result.FAILED_CODE).build();
     }
@@ -53,7 +54,7 @@ public class FeedController {
     /**
      * 获取当前用户关注的用户所发布的帖子
      */
-    @GetMapping("selectSubscribeFeed")
+   /* @GetMapping("selectSubscribeFeed")
     public Result selectSubscribe(HttpSession session){
         String currentUid = (String)session.getAttribute("uid");
         List<User> userList = followService.selectByFollower(currentUid);
@@ -69,21 +70,33 @@ public class FeedController {
         Collections.sort(contentList,ordering);
         Map m = fillResult(contentList,currentUid);
         return Result.builder().code(Result.SUCCESS_CODE).res(m).build();
-    }
+    }*/
 
-
-    @GetMapping("selectKeep")
-    public Result selectKeep (String uid ,HttpSession session){
-        String currentUid = (String) session.getAttribute("uid");
-        List<UserSendContent> contentList = feedService.selectKeepByUid(uid);
+    @UserLoginToken
+    @GetMapping("selectSubscribePage")
+    public Result selectSubscribePage(String page,HttpSession session){
+        String uid = (String) session.getAttribute("uid");
+        List<FeedItem> contentList = feedService.selectSubscribe(page,uid);
         if(contentList!=null){
-            Map m = fillResult(contentList,currentUid);
-            return Result.builder().code(Result.SUCCESS_CODE).res(m).build();
+            fillResult(contentList,uid);
+            return Result.builder().code(Result.SUCCESS_CODE).res(contentList).build();
         }
         return Result.builder().code(Result.SUCCESS_CODE).res(null).build();
     }
 
-    @GetMapping("selectIndexFeed")
+    @UserLoginToken
+    @GetMapping("selectKeep")
+    public Result selectKeep (String uid ,HttpSession session){
+        String currentUid = (String) session.getAttribute("uid");
+        List<FeedItem> contentList = feedService.selectKeepByUid(uid);
+        if(contentList!=null){
+            fillResult(contentList,currentUid);
+            return Result.builder().code(Result.SUCCESS_CODE).res(contentList).build();
+        }
+        return Result.builder().code(Result.SUCCESS_CODE).res(null).build();
+    }
+
+/*    @GetMapping("selectIndexFeed")
     public Result selectAllContent(HttpSession session){
         String uid = (String) session.getAttribute("uid");
         List<UserSendContent> contentList = userService.selectAllContent();
@@ -92,9 +105,20 @@ public class FeedController {
             return Result.builder().code(Result.SUCCESS_CODE).res(m).build();
         }
         return Result.builder().code(Result.SUCCESS_CODE).res(null).build();
+    }*/
+
+    @GetMapping("selectFeedPage")
+    public Result selectFeedPage(String page,HttpSession session){
+        String uid = (String) session.getAttribute("uid");
+        List<FeedItem> contentList = feedService.selectFeedPage(page);
+        if(contentList!=null){
+            fillResult(contentList,uid);
+            return Result.builder().code(Result.SUCCESS_CODE).res(contentList).build();
+        }
+        return Result.builder().code(Result.SUCCESS_CODE).res(null).build();
     }
 
-    @GetMapping("selectFeedByTheme")
+/*    @GetMapping("selectFeedByTheme")
     public Result selectFeedByTheme(String themeName,HttpSession session){
         String uid = (String) session.getAttribute("uid");
         List<String> feedList = feedService.selectByTheme(themeName);
@@ -104,51 +128,59 @@ public class FeedController {
             return Result.builder().code(Result.SUCCESS_CODE).res(m).build();
         }
         return Result.builder().code(404).error("该主题不存在").build();
+    }*/
+
+    @GetMapping("selectThemePage")
+    public Result selectThemePage(String page,String themeName,HttpSession session){
+        String uid = (String) session.getAttribute("uid");
+        List<FeedItem> contentList = feedService.selectThemePage(page,themeName);
+        if(contentList!=null){
+            fillResult(contentList,uid);
+            return Result.builder().code(Result.SUCCESS_CODE).res(contentList).build();
+        }
+        return Result.builder().code(Result.SUCCESS_CODE).res(null).build();
+    }
+
+    @GetMapping("selectHotTheme")
+    public Result selectHotTheme(){
+        List<String> hotThemeList = feedService.selectHotTheme();
+        return Result.builder().code(Result.SUCCESS_CODE).res(hotThemeList).build();
+    }
+
+    @GetMapping("searchTheme")
+    public Result searchTheme(String theme){
+        List<String> themeList = feedService.searchTheme(theme);
+        return Result.builder().code(Result.SUCCESS_CODE).res(themeList).build();
+    }
+
+    @GetMapping("searchUser")
+    public Result searchUser(String nickname){
+        List<User> userList = userService.searchUser(nickname);
+        return Result.builder().code(Result.SUCCESS_CODE).res(userList).build();
     }
 
     @UserLoginToken
     @DeleteMapping("deleteFeed")
-    public Result deleteFeed(@RequestBody Map m, HttpSession session ){
+    public Result deleteFeed(@RequestBody Map m){
         sendContentService.deleteFeed((String)m.get("feedId"));
         return Result.builder().code(Result.SUCCESS_CODE).build();
     }
 
 
-    public Map fillResult(List<UserSendContent> contentList,String uid){
-        List<LikeNum> likeNum = new ArrayList();
-        List<KeepNum> keepNum = new ArrayList();
-        List<MessageNum> messageNum = new ArrayList();
-        List<Liked> likeList = new ArrayList();
-        List<Kept> keepList = new ArrayList();
+    public List<FeedItem> fillResult(List<FeedItem> contentList,String uid){
         if(contentList != null) {
             contentList.stream().forEach(c -> {
                 c.setPicList(feedService.selectPicByFeedId(c.getFeedId()));
                 c.changeUrl();
                 c.setThemeList(feedService.selectThemeByFeedId(c.getFeedId()));
-                likeNum.add(feedService.countLike(c.getFeedId()));
-                keepNum.add(feedService.countKeep(c.getFeedId()));
-                messageNum.add(commentService.countMessage(c.getFeedId()));
                 if (uid != null && feedService.isLike(c.getFeedId(), uid)) {
-                    Liked l = new Liked();
-                    l.setFeedId(c.getFeedId());
-                    l.setIsLiked(true);
-                    likeList.add(l);
+                    c.setLike(true);
                 }
                 if (uid != null && feedService.isKeep(c.getFeedId(), uid)) {
-                    Kept k = new Kept();
-                    k.setFeedId(c.getFeedId());
-                    k.setIsKeep(true);
-                    keepList.add(k);
+                    c.setKeep(true);
                 }
             });
         }
-        Map m = new HashMap(12);
-        m.put("likeNum",likeNum);
-        m.put("likeList",likeList);
-        m.put("keepNum",keepNum);
-        m.put("keepList",keepList);
-        m.put("messageNum",messageNum);
-        m.put("contentList",contentList);
-        return m;
+        return contentList;
     }
 }

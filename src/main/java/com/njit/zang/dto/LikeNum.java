@@ -4,7 +4,8 @@ import lombok.Data;
 
 /**
  * Created by Administrator on 2019/3/28.
- */@Data
+ */
+@Data
 public class LikeNum {
      private String feedId;
      private int num;

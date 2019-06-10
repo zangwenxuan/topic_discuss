@@ -282,6 +282,7 @@ public class UserController {
         }
         return Result.builder().code(Result.FAILED_CODE).build();
     }
+/*
 
     @GetMapping("selectPersonalKeep")
     public Result selectPersonalKeep(String uid ,HttpSession session){
@@ -293,6 +294,7 @@ public class UserController {
         }
         return Result.builder().code(Result.SUCCESS_CODE).res(null).build();
     }
+*/
 
 
     /**

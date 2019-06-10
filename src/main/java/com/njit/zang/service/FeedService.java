@@ -1,13 +1,11 @@
 package com.njit.zang.service;
 
+import com.njit.zang.dto.FeedItem;
 import com.njit.zang.dto.KeepNum;
 import com.njit.zang.dto.Kept;
 import com.njit.zang.dto.LikeNum;
 import com.njit.zang.mapper.*;
-import com.njit.zang.model.Pictures;
-import com.njit.zang.model.SendContentHasTheme;
-import com.njit.zang.model.Theme;
-import com.njit.zang.model.UserSendContent;
+import com.njit.zang.model.*;
 import io.swagger.models.auth.In;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -30,10 +28,16 @@ public class FeedService {
     private ThemeDao themeDao;
 
     @Autowired
+    private SendContentDao sendContentDao;
+
+    @Autowired
     private KeepDao keepDao;
 
     @Autowired
     private LikeDao likeDao;
+
+    @Autowired
+    private NoticeService noticeService;
 
     @Autowired
     private SendContentHasThemeDao sendContentHasThemeDao;
@@ -91,12 +95,34 @@ public class FeedService {
         return l;
     }
 
+    public List<String> selectHotTheme(){
+        return sendContentHasThemeDao.selectHotTheme();
+    }
+
     public List<String> selectByUid(String uid){
         return keepDao.selectByUserId(uid);
     }
 
-    public List<UserSendContent> selectKeepByUid(String uid){
+    public List<FeedItem> selectKeepByUid(String uid){
         return keepDao.selectFeedByUid(uid);
+    }
+
+    public List<FeedItem> selectFeedPage(String page){
+        int pageStart = (Integer.parseInt(page) * 10);
+        /*return sendContentDao.selectFeedPage(pageStart);*/
+        return sendContentDao.selectFeedItemPage(pageStart);
+    }
+
+    public List<FeedItem> selectSubscribe(String page,String uid){
+        int pageStart = (Integer.parseInt(page) * 10);
+        /*return sendContentDao.selectSubscribe(pageStart,uid);*/
+        return sendContentDao.selectItemSubscribe(pageStart,uid);
+    }
+
+    public List<FeedItem> selectThemePage(String page,String themeName){
+        int pageStart = (Integer.parseInt(page) * 10);
+        /*return sendContentDao.selectByTheme(pageStart,themeName);*/
+        return sendContentDao.selectFeedItemByTheme(pageStart,themeName);
     }
 
     public boolean isLike(String feedId,String uid){
@@ -129,19 +155,28 @@ public class FeedService {
         return keepDao.insertIgnore(feedId,uid);
     }
 
-    public void like(String uid,String feedId){
+    public boolean like(String uid,String feedId){
         if(likeDao.selectByLike(uid,feedId) != null){
             likeDao.deleteLike(uid,feedId);
+            return false;
         }else {
-            likeDao.insertLike(uid,feedId);
+             likeDao.insertLike(uid,feedId);
+             return true;
         }
     }
 
-    public void keep(String uid,String feedId){
+    public boolean keep(String uid,String feedId){
         if(keepDao.selectByKeep(uid,feedId) != null){
             keepDao.deleteKeep(uid,feedId);
+            return false;
         }else {
             keepDao.insertKeep(uid,feedId);
+            return true;
         }
     }
+
+    public List<String> searchTheme(String theme){
+        return themeDao.searchTheme("%"+theme+"%");
+    }
+
 }

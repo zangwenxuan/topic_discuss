@@ -176,14 +176,17 @@ public class ContentController {
         sendContent.setContent(feed.getContent());
         sendContent.setAuthorId(feed.getAuthorId());
         sendContent.setFeedId(feedId);
-        sendContentService.insert(sendContent);
+        FeedItem feedItem = sendContentService.insert(sendContent);
         //为feed绑定图片
         feedService.insertPicList(feed.getPic(),feedId);
         //为feed绑定主题
         feedService.insertContentTheme(feed.getThemeList(),feedId);
         //添加通知
         insertNoticeToFollowers(sendContent);
-        return Result.builder().code(Result.SUCCESS_CODE).build();
+        feedItem.setPicList(feedService.selectPicByFeedId(feedItem.getFeedId()));
+        feedItem.changeUrl();
+        feedItem.setThemeList(feedService.selectThemeByFeedId(feedItem.getFeedId()));
+        return Result.builder().code(Result.SUCCESS_CODE).res(feedItem).build();
     }
 
     @UserLoginToken
@@ -219,7 +222,7 @@ public class ContentController {
         //初始化FeedNotice类
         FeedNotice feedNotice = new FeedNotice();
         feedNotice.setFromUserId(uid)
-                .setTime(new Date().getTime());
+                .setTime(System.currentTimeMillis());
         //取出有变动的收藏列表并遍历
         likeKeepList.getKeepList().stream().forEach(k->{
             if(k.getIsKeep()){
@@ -267,16 +270,40 @@ public class ContentController {
     @PostMapping("like")
     public Result like(@RequestBody Map m,HttpSession session){
         String uid = (String) session.getAttribute("uid");
-        feedService.like(uid,(String)m.get("feedId"));
-        return Result.builder().code(Result.SUCCESS_CODE).build();
+        String feedId = (String)m.get("feedId");
+        boolean insert = feedService.like(uid,feedId);
+        ContentDetails contentDetails = sendContentService.selectContentDetails(feedId);
+        FeedNotice feedNotice = new FeedNotice();
+        feedNotice.setFromUserId(uid)
+                .setFeedId(feedId)
+                .setToUserId(contentDetails.getAuthorId());
+        if(insert){
+            feedNotice.setType(0);
+        }else {
+            feedNotice.setType(-1);
+        }
+        noticeService.insertFeedNotice(feedNotice);
+        return Result.builder().code(Result.SUCCESS_CODE).res((String)m.get("feedId")).build();
     }
 
     @UserLoginToken
     @PostMapping("keep")
     public Result keep(@RequestBody Map m,HttpSession session){
         String uid = (String) session.getAttribute("uid");
-        feedService.keep(uid,(String)m.get("feedId"));
-        return Result.builder().code(Result.SUCCESS_CODE).build();
+        String feedId = (String)m.get("feedId");
+        boolean insert = feedService.keep(uid,feedId);
+        ContentDetails contentDetails = sendContentService.selectContentDetails(feedId);
+        FeedNotice feedNotice = new FeedNotice();
+        feedNotice.setFromUserId(uid)
+                .setFeedId(feedId)
+                .setToUserId(contentDetails.getAuthorId());
+        if(insert){
+            feedNotice.setType(1);
+        }else {
+            feedNotice.setType(-2);
+        }
+        noticeService.insertFeedNotice(feedNotice);
+        return Result.builder().code(Result.SUCCESS_CODE).res((String)m.get("feedId")).build();
     }
 
     @UserLoginToken
